@@ -1,0 +1,310 @@
+/* 🌙 Dark Modern Style */
+
+/* المسافات */
+.space {
+  height: 50px;
+}
+
+/* الخلفية العامة */
+body {
+  margin: 0;
+  font-family: "Poppins", Arial, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(to top right, #0d0d0f, #1a1a1d);
+  color: #e6e6e6;
+}
+
+/* 🔹 Navbar */
+.navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 25px;
+  backdrop-filter: blur(10px);
+  background: rgba(25, 25, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  max-width: calc(100% - 140px);
+  margin: 0 auto;
+  z-index: 1100;
+  border-radius: 12px;
+}
+
+/* اللينكات داخل النافبار */
+.navbar a {
+  text-decoration: none;
+  color: #ccc;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.navbar a.active {
+  background: linear-gradient(135deg, #242424, #383838);
+  color: #fff;
+  font-weight: bold;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.navbar a:hover {
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* علشان المحتوى ميختفيش ورا النافبار */
+main.custom-container {
+  padding-top: 100px;
+}
+
+/* 🔸 Drawer Toggle */
+.drawer-toggle {
+  position: fixed;
+  top: 75px;
+  left: 15px;
+  background: #2b2b2e;
+  color: #f2f2f2;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 1200;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.drawer-toggle:hover {
+  background: #38383c;
+}
+
+/* 🔸 Drawer */
+.drawer {
+  position: fixed;
+  top: 60px;
+  left: -250px;
+  width: 250px;
+  height: calc(100% - 60px);
+  background: #1d1d20;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+  transition: left 0.3s ease;
+  z-index: 1000;
+  padding-top: 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.drawer.open {
+  left: 0;
+}
+
+/* القايمة */
+.drawer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.drawer ul li {
+  margin: 15px 0;
+}
+
+.drawer ul li a {
+  text-decoration: none;
+  color: #ccc;
+  font-size: 18px;
+  padding: 10px 20px;
+  display: block;
+  transition: background 0.2s ease;
+}
+
+.drawer ul li a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+/* موبايل */
+@media (max-width: 768px) {
+  .drawer {
+    top: 120px;
+    height: calc(100% - 120px);
+  }
+  .drawer-toggle {
+    top: 135px;
+  }
+}
+
+/* 📦 Container */
+.custom-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+/* 🧩 Grid Layout */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+}
+
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}/* 🪩 Cards - محسّنة للرؤية */
+.custom-card {
+  background: linear-gradient(145deg, #1b1b1e, #121214);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+  padding: 40px 20px;
+  text-align: center;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* جلو حول الكارت */
+.custom-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 2px;
+  background: linear-gradient(135deg, #ffb84d, #ffe29f, #ffb84d);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.custom-card:hover::after {
+  opacity: 1;
+}
+
+/* محتوى الكارت */
+.custom-card img {
+  width: 55px;
+  height: 55px;
+  margin-bottom: 15px;
+  filter: drop-shadow(0 0 6px rgba(255, 230, 150, 0.6)) brightness(1.2);
+}
+
+.custom-card span {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fffbe6; /* أبيض ذهبي واضح */
+  text-shadow: 0 0 6px rgba(255, 200, 80, 0.4);
+  letter-spacing: 0.3px;
+}
+
+/* لما نقف عليه */
+.custom-card:hover {
+  transform: translateY(-7px) scale(1.03);
+  box-shadow: 0 20px 50px rgba(255, 200, 80, 0.2);
+  background: linear-gradient(145deg, #232326, #1a1a1d);
+}
+
+/* مؤشر الشيفت */
+.shift-indicator-top {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+.shift-indicator-top.open {
+  background-color: #00ff66;
+  box-shadow: 0 0 10px #00ff66, 0 0 20px #00ff66;
+}
+
+.shift-indicator-top.closed {
+  background-color: #ff4444;
+  box-shadow: 0 0 10px #ff4444, 0 0 20px #ff4444;
+}
+
+
+/* محتوى الكارت */
+.custom-card img {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 15px;
+}
+
+.custom-card span {
+  font-size: 19px;
+  color: #f5f5f5;
+}
+
+/* مؤشر الشيفت */
+.shift-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.shift-indicator-top {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.shift-indicator-top.open {
+  background-color: #23e94d;
+  box-shadow: 0 0 8px #23e94d;
+}
+
+.shift-indicator-top.closed {
+  background-color: #ff4444;
+  box-shadow: 0 0 8px #ff4444;
+}
+
+/* العناوين */
+h1 {
+  font-size: 36px;
+  color: #fafafa;
+}
+
+p {
+  font-size: 18px;
+  color: #bdbdbd;
+}
+
+/* الأزرار */
+.custom-btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #29292e, #3b3b42);
+  border-radius: 8px;
+  text-decoration: none;
+  color: #f1f1f1;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.custom-btn:hover {
+  background: linear-gradient(135deg, #3d3d44, #4b4b53);
+  transform: scale(1.05);
+}
