@@ -52,7 +52,14 @@
                     </button>
                 </form>
             </div>
-
+ <div class="col-12 col-sm-6 col-lg-4">
+                <form action="{{ route('invoice.index') }}" method="GET">
+                    <button type="submit" class="custom-card w-100">
+                        <img src="https://img.icons8.com/ios/50/bill.png" alt="فاتورة">
+                        <span>الفواتير</span>
+                    </button>
+                </form>
+            </div>
             <div class="col-12 col-sm-6 col-lg-4">
                 <form action="{{ route('bookings.index-manager') }}" method="GET">
                     <button type="submit" class="custom-card w-100">

@@ -349,7 +349,7 @@ class SationController extends Controller
     }
   }
 
-  public function index(Request $request)
+  public function indexManager(Request $request)
   {
     $query = $request->get('search');
 
@@ -364,7 +364,7 @@ class SationController extends Controller
       ->latest()
       ->get();
     $halls = Hall::all();
-    $sessions_count = Sation::where('status', 'active')->count();
+     $sessions_count = Sation::where('status', 'active')->sum('persons');
 
     // عدد الحجوزات الجارية
     $private_sessions_count = Booking::where('status', 'in_progress')->count();

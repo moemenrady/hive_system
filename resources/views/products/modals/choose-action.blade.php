@@ -23,25 +23,6 @@
         </div>
     </div>
 </div>
-
 <style>
-    .btn-purple {
-        background-color: #9b59b6;
-        color: white;
-    }
-
-    .btn-purple:hover {
-        background-color: #8e44ad;
-        color: #fff;
-    }
-
-    .btn-green {
-        background-color: #27ae60;
-        color: white;
-    }
-
-    .btn-green:hover {
-        background-color: #219150;
-        color: #fff;
-    }
+  
 </style>

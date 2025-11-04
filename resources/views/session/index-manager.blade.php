@@ -5,17 +5,21 @@
 @section('style')
     <style>
       :root {
-    --bg-color: #0e0e11; /* نفس layout */
-    --card-bg: #16161a; /* لون الكروت */
-    --accent: #ffb84d; /* أزرار وألوان مميزة */
-    --accent-light: #ffe6a3; /* ألوان فاتحة للنصوص */
-    --text-main: #f5f5f5; /* النصوص الأساسية */
-    --text-dim: #bfbfbf; /* النصوص الثانوية */
-    --border-light: rgba(255,255,255,0.08);
-    --theme-primary: #1a1a1d; /* خلفية الكروت */
-    --btn-bg: #ffb84d;
-    --btn-border: #f2d35e;
-    --btn-text: #111;
+--bg-color: #0e0e11; /* خلفية الصفحة */
+  --card-bg: #16161a; /* لون الكروت */
+  --accent: #ffb84d; /* لون ذهبي عام */
+  --accent-light: #ffe6a3; /* فاتح للذهبي */
+  --text-main: #f5f5f5; /* النص الأساسي */
+  --text-dim: #bfbfbf; /* النص الثانوي */
+  --border-light: rgba(255,255,255,0.08);
+  --theme-primary: #1a1a1d; /* خلفية الكروت */
+  
+  /* 🎨 ألوان الأزرار المخصصة */
+  --btn-primary-start: #c0c0c0; /* سيلفر غامق */
+  --btn-primary-end: #8e8e8e; /* سيلفر فاتح */
+  --btn-private-start: #ffb84d; /* جولد */
+  --btn-private-end: #d8962a; /* جولد غامق */
+  --btn-text: #111;
 }
 
 
@@ -26,6 +30,31 @@
             font-family: "Cairo", sans-serif;
             margin: 0;
         }
+/* 🎨 تخصيص select في المودال */
+#startBookingModal .fancy-select {
+    background-color: #ffffff !important; /* خلفية بيضاء */
+    color: #ffffff !important; /* النص أبيض */
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 10px;
+    padding: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* 🩵 نص الاختيارات داخل القائمة */
+#startBookingModal .fancy-select option {
+    background-color: #222 !important; /* الخلفية الغامقة داخل القائمة */
+    color: #ffffff !important; /* النص أبيض */
+    font-weight: 600;
+    padding: 8px;
+}
+
+/* ✨ لما يفتح المستخدم القائمة */
+#startBookingModal .fancy-select:focus {
+    outline: none;
+    border-color: #ffb84d;
+    box-shadow: 0 0 8px rgba(255, 184, 77, 0.4);
+}
 
         /* Container */
         .page-container {
@@ -51,15 +80,7 @@
             margin-bottom: 15px;
         }
 
-        .count-box {
-            font-size: 15px;
-            font-weight: 600;
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: 2px solid #555;
-            width: fit-content;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
+
 
         .sessions-box {
             background-color: #D9B1AB;
@@ -118,19 +139,19 @@
         .session-card .info h3 {
             margin: 0;
             font-size: 15px;
-            color: #222;
+            color: #ffffff;
         }
 
         .session-card .info p {
             margin: 6px 0 0;
             font-size: 13px;
-            color: #666;
+            color: #ffffff;
         }
 
         .session-card .persons {
             font-weight: 700;
             font-size: 14px;
-            color: #333;
+            color: #ffffff;
             margin-left: 12px;
             white-space: nowrap;
         }
@@ -204,40 +225,58 @@
             text-align: center;
         }
 
-        /* Buttons */
-        .btn-submit {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #D9B1AB, #c48c85);
-            color: #fff;
-            font-weight: 700;
-            border: none;
-            cursor: pointer;
-        }
 
-        .btn-submit.primary {
-            background: linear-gradient(135deg, #D9B1AB, #c48c85);
+/* 🎯 عدّاد الجلسات الخاصة */
+        .count-box {
+            font-size: 15px;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            width: fit-content;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
+.count-box.private-box {
+  background: linear-gradient(135deg, #ffcc70, #ffb347);
+  color: #1a1a1a;
+  font-weight: 800;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.25s ease;
+}
 
-        .btn-submit.private {
-            background: linear-gradient(135deg, #7b61ff, #5e3bff);
-        }
 
-        /* Search */
-        .search-box input {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #eee;
-            background: #fff;
-            color: #222;
-        }
+
+/* Search (Hive Dark Style) */
+.search-box input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: #1a1a1d; /* داكن زي خلفية الكروت */
+  color: var(--text-main);
+  transition: all 0.25s ease;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+.search-box input::placeholder {
+  color: var(--text-dim);
+  opacity: 0.8;
+}
+
+/* عند التركيز */
+.search-box input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(255, 184, 77, 0.4); /* إضاءة باللون البرتقالي */
+  background: #202024; /* تفتيح بسيط عند التركيز */
+}
 
         /* No results */
         .no-results {
             text-align: center;
-            color: #999;
+            color: #f7f7f7;
             padding: 18px 8px;
         }
 
@@ -255,7 +294,7 @@
             overflow-y: auto;
             padding: 1px;
             border-radius: 10px;
-            background: #fff;
+            background: #ffffff;
             border: 1px solid #eee;
             box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
             display: none;
@@ -307,7 +346,7 @@
   height: 40px;
 }
         .result-item .result-phone {
-            color: #666;
+            color: #ffffff;
             font-size: 13px;
         }
 
@@ -411,15 +450,125 @@
                 left: 15px;
             }
         }
+
+
+        .modal-content {
+  background: var(--theme-primary);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #1d1d22, #121215);
+  border-bottom: 1px solid var(--border-light);
+  color: var(--accent);
+}
+
+.modal-header .modal-title {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.modal-body {
+  background: var(--theme-primary);
+}
+
+.modal .form-label {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.fancy-select-wrapper {
+  background: #1e1e23;
+  border: 1px solid var(--border-light);
+}
+
+.fancy-select {
+  color: var(--text-main);
+  background: transparent;
+}
+
+.input-box {
+  background: #1a1a1d;
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+.alert-warning {
+  background: rgba(255, 184, 77, 0.1);
+  border: 1px solid rgba(255, 184, 77, 0.3);
+  color: var(--accent-light);
+}
+
+#estimateBanner {
+  background: rgba(255, 184, 77, 0.08);
+  color: var(--accent-light);
+  border: 1px solid var(--border-light);
+}
+
+
+/* close button */
+.btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+/* 🚀 زرار بدء الجلسة - سيلفر */
+.btn-submit.primary {
+  background: linear-gradient(135deg, var(--btn-primary-start), var(--btn-primary-end));
+  color: var(--btn-text);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-submit.primary:hover {
+  background: linear-gradient(135deg, #d6d6d6, #a3a3a3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(255,255,255,0.15);
+}
+
+/* 🔒 زرار الجلسة الخاصة - جولد */
+.btn-submit.private {
+  background: linear-gradient(135deg, var(--btn-private-start), var(--btn-private-end));
+  color: var(--btn-text);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.btn-submit.private:hover {
+  background: linear-gradient(135deg, #ffd37a, #ffb84d);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(255,184,77,0.25);
+}
+
+
+
     </style>
 @endsection
-@section('content')
-    <div class="page-container">
-<div class="space"></div>
-        <h1 class="title">إدارة الجلسات</h1>
+@section('page_title')
+    <h1 class="title">إدارة الجلسات</h1>
 
+@endsection
+@section('content')
+
+    <div class="page-container">
+        
         <div class="counts-container">
-            <div class="count-box sessions-box">
+            <div class="count-box">
                 الجلسات: {{ $sessions_count }}
             </div>
 
@@ -462,7 +611,7 @@
                             <div class="error-msg">{{ $message }}</div>
                         @enderror
                     </div>
-
+<div class="space"></div>
                     <div class="form-group">
                         <label for="name">اسم العميل</label>
                         <input type="text" id="name" name="name" class="input-box" placeholder="اسم العميل"
@@ -483,12 +632,15 @@
                     </div>
 
                     <div class="d-flex gap-2" style="flex-wrap:wrap;">
-                        <button type="submit" class="btn-submit primary" style="flex:1; min-width:140px;">🚀 بدء
-                            الجلسة</button>
-                        <button type="button" id="openPrivateBtn" class="btn-submit private"
-                            style="flex:1; min-width:140px;" data-bs-toggle="modal" data-bs-target="#startBookingModal">
-                            🔒 بدء جلسة خاصة
-                        </button>
+                      <button type="submit" class="btn-submit primary" style="flex:1; min-width:140px;">
+  🚀 بدء الجلسة
+</button>
+
+<button type="button" id="openPrivateBtn" class="btn-submit private"
+  style="flex:1; min-width:140px;" data-bs-toggle="modal" data-bs-target="#startBookingModal">
+  🔒 بدء جلسة خاصة
+</button>
+
                     </div>
                 </form>
 

@@ -3,59 +3,58 @@
 @section('title', 'إضافة مشترك')
 
 @section('content')
+<div class="container animate__animated animate__fadeInUp">
+    <h2 class="page-title">إضافة مشترك جديد</h2>
 
-    <div class="container animate__animated animate__fadeInUp">
-        <h2 class="page-title">إضافة مشترك جديد</h2>
+    <form action="{{ route('clients.subscribe') }}" method="POST">
+        @csrf
 
-        <form action="{{ route('clients.subscribe') }}" method="POST">
-            @csrf
+        {{-- البحث بالهاتف --}}
+        <div class="form-group">
+            <label for="phone">رقم الهاتف</label>
+            <input type="text" id="phone" name="phone" class="input-box" placeholder="🔍 العميل"
+                value="{{ old('phone') }}" maxlength="11" autocomplete="off" required>
+            <div id="phone-results"></div>
+            @error('phone')
+                <span class="error-msg">{{ $message }}</span>
+            @enderror
+        </div>
 
-            {{-- البحث بالهاتف --}}
-            <div class="form-group">
-                <label for="phone">رقم الهاتف</label>
-                <input type="text" id="phone" name="phone" class="input-box" placeholder="🔍 العميل"
-                    value="{{ old('phone') }}" maxlength="11" autocomplete="off" required>
-                <div id="phone-results"></div>
-                @error('phone')
-                    <span class="error-msg">{{ $message }}</span>
-                @enderror
-            </div>
+        {{-- اسم العميل --}}
+        <div class="form-group">
+            <label for="name">اسم العميل</label>
+            <input type="text" id="name" name="name" class="input-box" placeholder="اسم العميل"
+                value="{{ old('name') }}" required>
+            @error('name')
+                <span class="error-msg">{{ $message }}</span>
+            @enderror
+        </div>
 
-            {{-- اسم العميل --}}
-            <div class="form-group">
-                <label for="name">اسم العميل</label>
-                <input type="text" id="name" name="name" class="input-box" placeholder="اسم العميل"
-                    value="{{ old('name') }}" required>
-                @error('name')
-                    <span class="error-msg">{{ $message }}</span>
-                @enderror
-            </div>
+        {{-- اختيار الخطة --}}
+        <div class="form-group">
+            <label for="plan-select">اختر الخطة</label>
+            <select class="dropdown" name="plan_id" id="plan-select" required>
+                <option value="" disabled selected>اختر الخطة</option>
+                @foreach ($plans as $plan)
+                    <option value="{{ $plan->id }}" data-price="{{ $plan->price }}">
+                        {{ $plan->name }} - {{ $plan->visits_count }} زيارة / {{ $plan->duration_days }} يوم
+                    </option>
+                @endforeach
+            </select>
+            @error('plan_id')
+                <span class="error-msg">{{ $message }}</span>
+            @enderror
+        </div>
 
-            {{-- اختيار الخطة --}}
-            <div class="form-group">
-                <label for="plan-select">اختر الخطة</label>
-                <select class="dropdown" name="plan_id" id="plan-select" required>
-                    <option value="" disabled selected>اختر الخطة</option>
-                    @foreach ($plans as $plan)
-                        <option value="{{ $plan->id }}" data-price="{{ $plan->price }}">
-                            {{ $plan->name }} - {{ $plan->visits_count }} زيارة / {{ $plan->duration_days }} يوم
-                        </option>
-                    @endforeach
-                </select>
-                @error('plan_id')
-                    <span class="error-msg">{{ $message }}</span>
-                @enderror
-            </div>
+        {{-- السعر --}}
+        <div class="form-group">
+            <label for="plan-price">سعر الاشتراك</label>
+            <input type="text" id="plan-price" placeholder="سعر الاشتراك" class="input-box" readonly>
+        </div>
 
-            {{-- السعر --}}
-            <div class="form-group">
-                <label for="plan-price">سعر الاشتراك</label>
-                <input type="text" id="plan-price" placeholder="سعر الاشتراك" class="input-box" readonly>
-            </div>
-
-            <button type="submit" class="btn-submit">إتمام الاشتراك</button>
-        </form>
-    </div>
+        <button type="submit" class="btn-submit">إتمام الاشتراك</button>
+    </form>
+</div>
 
     {{-- ✅ JS --}}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -457,187 +456,141 @@
 </script>
 @endsection
 @section('style')
-    <style>
-        body {
-            font-family: "Cairo", sans-serif;
-            background: #ffffff;
-            margin: 0;
-            padding: 40px;
-            color: #333;
-        }
+<style>
+    /* Body Dark Theme */
+    body {
+        font-family: "Cairo", sans-serif;
+        background: #1c1c1c;
+        margin: 0;
+        padding: 40px;
+        color: #f5f5f5;
+    }
 
-        .page-title {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #444;
-        }
+    .page-title {
+        font-size: 26px;
+        margin-bottom: 25px;
+        text-align: center;
+        color: #FFD700; /* Gold */
+    }
 
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 18px;
-            max-width: 500px;
-            margin: auto;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            backdrop-filter: blur(6px);
-        }
+    .container {
+        background: #2c2c2c;
+        padding: 30px;
+        border-radius: 18px;
+        max-width: 500px;
+        margin: auto;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+    }
 
-        .form-group {
-            margin-bottom: 18px;
-            text-align: right;
-        }
+    .form-group {
+        margin-bottom: 18px;
+        text-align: right;
+    }
 
-        .form-group label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: block;
-        }
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        color: #FFD700;
+    }
 
-        .input-box {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #ccc;
-            background: #fafafa;
-            transition: all 0.3s;
-        }
+    .input-box {
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #444;
+        background: #1f1f1f;
+        color: #fff;
+        transition: all 0.3s;
+    }
 
-        .input-box:focus {
-            border-color: #d9b2ad;
-            box-shadow: 0 0 8px rgba(217, 178, 173, 0.6);
-            outline: none;
-        }
+    .input-box:focus {
+        border-color: #FFD700;
+        box-shadow: 0 0 10px rgba(255,215,0,0.5);
+        outline: none;
+    }
 
-        /* container */
-        #phone-results {
-            max-height: 240px;
-            overflow: auto;
-            padding: 6px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            background: #fff;
-            display: none;
-        }
+    #phone-results {
+        position: absolute;
+        width: 90%;
+        left: 50%;
+        transform: translateX(-50%);
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid #555;
+        border-radius: 8px;
+        background: #2c2c2c;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        display: none;
+        z-index: 1000;
+    }
 
-        .result-item {
-            padding: 8px 12px 8px 36px;
-            cursor: pointer;
-            border-radius: 6px;
-            position: relative;
-            transition: background .12s, transform .08s;
-        }
+    .result-item {
+        padding: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+        color: #fff;
+    }
 
-        .result-item:hover {
-            background: #f7fbff;
-        }
+    .result-item:hover, .result-item.active {
+        background: #444;
+        color: #FFD700;
+    }
 
-        /* active style: ثابت وواضح */
-        .result-item.active {
-            background: #e8f2ff !important;
-            box-shadow: inset 0 0 0 1px rgba(0, 123, 255, 0.06);
-            transform: translateX(0);
-        }
+    .result-item.active::before {
+        content: "";
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+        border-left: 8px solid #FFD700;
+        opacity: 0.98;
+    }
 
-        /* السهم العصري على اليسار */
-        .result-item.active::before {
-            content: "";
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 0;
-            height: 0;
-            border-top: 6px solid transparent;
-            border-bottom: 6px solid transparent;
-            border-left: 8px solid #007bff;
-            opacity: 0.98;
-        }
+    .dropdown {
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid #555;
+        background: #1f1f1f;
+        color: #FFD700;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
 
-        /* ترك مسافة لليمين لو محتوى طويل */
-        .result-item span {
-            display: inline-block;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: calc(100% - 12px);
-        }
-    
-        .dropdown {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #b98c86;
-            background: #ffffff;
-            /* الخلفية بيضاء */
-            color: #2b2b2b;
-            /* النص بالأسود */
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+    .dropdown:focus {
+        outline: none;
+        border-color: #FFD700;
+        box-shadow: 0 0 8px rgba(255,215,0,0.4);
+    }
 
-        .dropdown:focus {
-            outline: none;
-            border-color: #d9b2ad;
-            box-shadow: 0 0 8px rgba(217, 178, 173, 0.4);
-        }
+    .btn-submit {
+        background: linear-gradient(135deg, #FFD700, #c48c85);
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        color: #1c1c1c;
+        font-weight: bold;
+        font-size: 16px;
+        width: 100%;
+        cursor: pointer;
+        transition: transform 0.25s, box-shadow 0.25s;
+    }
 
-        .dropdown option:hover {
-            background: #f0f0f0;
-            color: #000;
-        }
+    .btn-submit:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255,215,0,0.5);
+    }
 
-
-        .btn-submit {
-            background: linear-gradient(135deg, #D9B1AB, #c48c85);
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            color: #fff;
-            font-weight: bold;
-            font-size: 16px;
-            width: 100%;
-            cursor: pointer;
-            transition: transform 0.25s, box-shadow 0.25s;
-        }
-
-        .btn-submit:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(217, 177, 171, 0.5);
-        }
-
-
-
-        .error-msg {
-            color: red;
-            font-size: 13px;
-        }
-
-        #phone-results {
-            position: absolute;
-            width: 90%;
-            left: 50%;
-            transform: translateX(-50%);
-            max-height: 250px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background: #fff;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            display: none;
-            z-index: 1000;
-        }
-
-        #phone-results .result-item {
-            padding: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        #phone-results .result-item:hover {
-            background: #f5f5f5;
-        }
-    </style>
+    .error-msg {
+        color: #ff4d4f;
+        font-size: 13px;
+    }
+</style>
 @endsection

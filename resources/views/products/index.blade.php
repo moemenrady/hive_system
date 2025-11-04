@@ -1,61 +1,17 @@
 @extends('layouts.app')
-
 @section('page_title', 'المخزن')
 
 <style>
-    /* body */
+    /* 🎨 نفس ستايل صفحة إدارة الاشتراكات */
     body {
         font-family: "Tahoma", sans-serif;
         background: #1c1c1f;
-        /* خلفية داكنة */
         margin: 0;
         padding: 0;
         color: #f5f5f5;
     }
 
-    /* container */
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 30px 20px;
-    }
-
-    /* العداد */
-    .stats-box {
-        background: #1a1a1d;
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        width: 220px;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-        font-size: 15px;
-        margin: 10px;
-        flex-shrink: 0;
-    }
-
-    .stats-box p:first-child {
-        margin: 0;
-        font-weight: bold;
-        color: #ffd97a;
-        font-size: 16px;
-    }
-
-    .stats-box p:last-child {
-        margin: 10px 0 0;
-        font-size: 22px;
-        color: #f5f5f5;
-    }
-
-    /* الصف الأول (عدادات + زرار) */
-    .header-row {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-wrap: wrap;
-        margin-bottom: 40px;
-    }
-
-    /* زر الإضافة مع اللمعة */
+    /* زر الإضافة */
     #addButton {
         width: 100px;
         height: 100px;
@@ -68,7 +24,7 @@
         font-size: 48px;
         font-weight: 600;
         color: #1a1a1a;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
         transition: transform .28s ease, box-shadow .28s ease, background .28s;
         margin: 20px auto;
         position: relative;
@@ -119,31 +75,38 @@
         box-shadow: 0 0 8px rgba(255, 184, 77, 0.28);
     }
 
-    /* الفلاتر */
-    .filters-box {
-        display: flex;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin-bottom: 18px;
-        align-items: center;
+    /* صندوق العداد */
+    .stats-box {
+        background: #1a1a1d;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        width: 220px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+        font-size: 15px;
+        margin: 10px;
     }
 
-    .filters-box label.form-label {
-        color: #ffffff !important;
-        font-weight: 600;
+    .stats-box p:first-child {
+        font-weight: bold;
+        color: #ffb84d;
+        font-size: 16px;
+        margin: 0;
     }
 
-    .form-check-lg .form-check-input {
-        width: 1.4em;
-        height: 1.4em;
-        margin-top: .1em;
-    }
-
-    .form-check-lg .form-check-label {
-        font-size: 1em;
-        margin-right: .4em;
+    .stats-box p:last-child {
+        margin-top: 8px;
+        font-size: 22px;
         color: #f5f5f5;
+    }
+
+    /* الصف */
+    .header-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
     }
 
     /* الجدول */
@@ -185,7 +148,6 @@
         transform: translateY(-3px);
         background: rgba(255, 184, 77, 0.08);
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-        cursor: pointer;
     }
 
     /* badge */
@@ -209,20 +171,6 @@
 
     /* موبايل */
     @media (max-width:768px) {
-        .header-row {
-            flex-direction: column;
-        }
-
-        #addButton {
-            width: 80px;
-            height: 80px;
-            font-size: 36px;
-            margin: 15px 0;
-        }
-
-        .search-box input {
-            width: 100%;
-        }
 
         table,
         thead,
@@ -276,47 +224,12 @@
             transform: translateY(0);
         }
     }
-
-    /* مودال المخزن */
-    .modal-content {
-        background: #1c1c1f;
-        color: #f5f5f5;
-        border-radius: 12px;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-    }
-
-    .modal-header {
-        background: #333;
-        color: #ffd97a;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .modal-body input,
-    .modal-body select,
-    .modal-body textarea {
-        background: #1c1c1f;
-        color: #f5f5f5;
-        border: 1px solid #555;
-    }
-
-    .modal-body input:focus,
-    .modal-body select:focus,
-    .modal-body textarea:focus {
-        border-color: #ffb84d;
-        box-shadow: 0 0 8px rgba(255, 184, 77, 0.28);
-    }
-
-    .modal-footer {
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
 </style>
 
 @section('content')
-
     <div class="container">
 
         {{-- الإشعارات --}}
-
         @if (session('success'))
             <div style="background: #d4edda; padding: 12px; margin-bottom: 20px; border-radius: 8px; color:#155724;">
                 {{ session('success') }}
@@ -330,75 +243,44 @@
         @endif
 
         {{-- العدادين وزرار الإضافة --}}
-
         <div class="header-row">
-
             <div class="stats-box">
-
                 <p>عدد المنتجات</p>
-
                 <p>{{ $countItems }}</p>
-
             </div>
 
             <button id="addButton" data-bs-toggle="modal" data-bs-target="#chooseActionModal">+</button>
 
-
             <div class="stats-box">
-
                 <p>عدد الأصناف</p>
-
                 <p>{{ $countProducts }}</p>
-
             </div>
-
         </div>
 
         {{-- البحث --}}
-
         <div class="search-box">
-
             <input type="text" id="searchBox" placeholder="🔍 بحث عن منتج">
-
         </div>
 
         {{-- الجدول --}}
-
         <table>
-
             <thead>
-
                 <tr>
-
                     <th>المعرف</th>
-
                     <th>اسم المنتج</th>
-
                     <th>السعر</th>
-
                     <th>التكلفة</th>
-
                     <th>العدد</th>
-
                 </tr>
-
             </thead>
-
             <tbody id="productTable">
-
                 @foreach ($products as $product)
                     <tr>
-
                         <td data-label="المعرف">{{ $product->id }}</td>
-
                         <td data-label="اسم المنتج">{{ $product->name }}</td>
-
                         <td data-label="السعر">{{ $product->price }}</td>
-
                         <td data-label="التكلفة">{{ $product->cost }}</td>
-
                         <td data-label="العدد">{{ $product->quantity }}</td>
-
                     </tr>
                 @endforeach
             </tbody>
@@ -406,16 +288,13 @@
     </div>
 
     <script>
-        // البحث AJAX
         document.getElementById('searchBox').addEventListener('keyup', function() {
             let query = this.value;
-
             fetch("{{ route('products.search') }}?query=" + query)
                 .then(response => response.json())
                 .then(data => {
                     let tbody = document.getElementById('productTable');
                     tbody.innerHTML = "";
-
                     if (data.length > 0) {
                         data.forEach(item => {
                             tbody.innerHTML += `
@@ -425,99 +304,16 @@
                             <td data-label="السعر">${item.price}</td>
                             <td data-label="التكلفة">${item.cost}</td>
                             <td data-label="العدد">${item.quantity}</td>
-                        </tr>
-                    `;
+                        </tr>`;
                         });
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="5" class="text-center">❌ لا توجد نتائج</td></tr>`;
                     }
                 });
         });
-
-        // زرار الإضافة
-        document.getElementById('addButton').addEventListener('click', function() {
-
-        });
     </script>
 
-
-
-
-    {{-- المودالات --}}
     @include('products.modals.choose-action')
     @include('products.modals.add-product')
     @include('products.modals.add-quantity')
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const addQtyModal = document.getElementById('addQuantityModal');
-            if (!addQtyModal) return;
-
-            // لما المودال يفتح
-            addQtyModal.addEventListener('shown.bs.modal', function() {
-                const searchInput = document.getElementById('searchProduct');
-                const resultsList = document.getElementById('searchResults');
-                const form = document.getElementById('addQuantityForm');
-                const productIdInput = document.getElementById('product_id');
-
-                if (!searchInput || !resultsList || !form || !productIdInput) return;
-
-                // reset كل مرة يفتح فيها المودال
-                searchInput.value = '';
-                resultsList.innerHTML = '';
-                form.style.display = 'none';
-                productIdInput.value = '';
-                searchInput.focus();
-
-                // علشان ما نربطش نفس الحدث أكتر من مرة
-                if (searchInput.dataset.bound === '1') return;
-                searchInput.dataset.bound = '1';
-
-                // السيرش
-                searchInput.addEventListener('keyup', function() {
-                    const q = this.value.trim();
-                    if (q.length < 1) {
-                        resultsList.innerHTML = '';
-                        form.style.display = 'none';
-                        return;
-                    }
-
-                    fetch("{{ route('products.search') }}?query=" + encodeURIComponent(q))
-                        .then(res => res.json())
-                        .then(items => {
-                            resultsList.innerHTML = '';
-
-                            if (!items.length) {
-                                resultsList.innerHTML =
-                                    '<li class="list-group-item text-center text-muted">لا توجد نتائج</li>';
-                                form.style.display = 'none';
-                                return;
-                            }
-
-                            items.forEach(item => {
-                                const li = document.createElement('li');
-                                li.className = 'list-group-item list-group-item-action';
-                                li.style.cursor = 'pointer';
-                                li.textContent = `${item.name} (المعرف: ${item.id})`;
-
-                                li.addEventListener('click', function() {
-                                    productIdInput.value = item.id;
-                                    form.action =
-                                        "{{ route('products.addQuantity', ':id') }}"
-                                        .replace(':id', item.id);
-
-                                    form.style.display = 'block';
-                                    resultsList.innerHTML = '';
-                                    searchInput.value = item.name;
-                                });
-
-                                resultsList.appendChild(li);
-                            });
-                        })
-                        .catch(err => {
-                            console.error('Search error:', err);
-                        });
-                });
-            });
-        });
-    </script>
-
 @endsection

@@ -9,6 +9,7 @@ use App\Models\Hall;
 use App\Models\ImportantProduct;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Product;
 use App\Models\Shift;
 use App\Models\VenuePricing;
 use App\Services\BookingConflictService;
@@ -21,6 +22,8 @@ use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
 use Exception;
 use Illuminate\Support\Facades\Schema;
+use App\Models\ShiftAction;
+use Illuminate\Http\RedirectResponse;
 
 class BookingController extends Controller
 {
@@ -254,86 +257,98 @@ class BookingController extends Controller
     return response()->json($data);
   }
   public function ajaxSearchManager(Request $request)
-{
+  {
     try {
-        $query = Booking::with(['hall', 'client'])
-            ->whereNotIn('status', ['finished', 'cancelled']);
+      $query = Booking::with(['hall', 'client'])
+        ->whereNotIn('status', ['finished', 'cancelled']);
 
-        if ($request->filled('q')) {
-            $q = $request->q;
-            $query->where(function ($sub) use ($q) {
-                $sub->where('title', 'like', "%{$q}%")
-                    ->orWhereHas('client', function ($c) use ($q) {
-                        $c->where('name', 'like', "%{$q}%")
-                          ->orWhere('phone', 'like', "%{$q}%")
-                          ->orWhere('id', $q);
-                    })
-                    ->orWhereHas('hall', function ($h) use ($q) {
-                        $h->where('name', 'like', "%{$q}%");
-                    })
-                    ->orWhereDate('start_at', $q)
-                    ->orWhereDate('end_at', $q);
-            });
-        }
-
-        if ($request->filled('from')) {
-            $query->whereDate('start_at', '>=', $request->from);
-        }
-        if ($request->filled('to')) {
-            $query->whereDate('start_at', '<=', $request->to);
-        }
-
-        if ($request->filled('halls')) {
-            $halls = is_array($request->halls) ? $request->halls : [$request->halls];
-            $query->whereIn('hall_id', $halls);
-        }
-
-        if ($request->filled('statuses')) {
-            $statuses = is_array($request->statuses) ? $request->statuses : [$request->statuses];
-            $query->whereIn('status', $statuses);
-        }
-
-        $bookings = $query->orderBy('start_at', 'asc')->get();
-
-        $inProgress = $bookings->filter(fn($b) => $b->status === 'in_progress');
-        $due        = $bookings->filter(fn($b) => $b->status === 'due');
-        $scheduled  = $bookings->filter(fn($b) => $b->status === 'scheduled');
-
-        $uniqueScheduled = $scheduled->filter(fn($b) => $b->client_id !== null)
-                                     ->unique('client_id')
-                                     ->values();
-
-        $withoutClientScheduled = $scheduled->filter(fn($b) => $b->client_id === null);
-
-        $finalScheduled = $uniqueScheduled->concat($withoutClientScheduled);
-
-        $finalBookings = $inProgress->concat($due)->concat($finalScheduled);
-
-        $data = $finalBookings->map(function ($b) {
-            return [
-                'id' => $b->id,
-                'title' => $b->title,
-                'hall_id' => $b->hall_id,
-                'hall_name' => $b->hall->name ?? '',
-                'client_id' => $b->client_id,
-                'client_name' => $b->client->name ?? '',
-                'client_phone' => $b->client->phone ?? '',
-                'start_at' => optional($b->start_at)->toIso8601String(),
-                'end_at' => optional($b->end_at)->toIso8601String(),
-                'date' => optional($b->start_at)->toDateString(),
-                'time_from' => optional($b->start_at)->format('H:i'),
-                'time_to' => optional($b->end_at)->format('H:i'),
-                'status' => $b->status,
-                'attendees' => $b->attendees ?? 0,
-                'estimated_total' => (float) ($b->estimated_total ?? 0),
-            ];
+      // 🟢 لو فيه بحث
+      if ($request->filled('q')) {
+        $q = $request->q;
+        $query->where(function ($sub) use ($q) {
+          $sub->where('title', 'like', "%{$q}%")
+            ->orWhereHas('client', function ($c) use ($q) {
+              $c->where('name', 'like', "%{$q}%")
+                ->orWhere('phone', 'like', "%{$q}%")
+                ->orWhere('id', $q);
+            })
+            ->orWhereHas('hall', function ($h) use ($q) {
+              $h->where('name', 'like', "%{$q}%");
+            })
+            ->orWhereDate('start_at', $q)
+            ->orWhereDate('end_at', $q);
         });
+      }
 
-        return response()->json($data);
+      // 🗓️ الفلاتر الزمنية
+      if ($request->filled('from')) {
+        $query->whereDate('start_at', '>=', $request->from);
+      }
+      if ($request->filled('to')) {
+        $query->whereDate('start_at', '<=', $request->to);
+      }
+
+      // 🏠 القاعات
+      if ($request->filled('halls')) {
+        $halls = is_array($request->halls) ? $request->halls : [$request->halls];
+        $query->whereIn('hall_id', $halls);
+      }
+
+      // 📊 الحالات
+      if ($request->filled('statuses')) {
+        $statuses = is_array($request->statuses) ? $request->statuses : [$request->statuses];
+        $query->whereIn('status', $statuses);
+      }
+
+      // 💡 جلب الحجوزات مرتبة بالوقت
+      $bookings = $query->orderBy('start_at', 'desc')->get();
+
+      // 🧩 لو مفيش كويري (يعني الصفحة أول ما تفتح)
+      if (!$request->filled('q')) {
+        // نجيب الأحدث فقط من كل مجموعة مكررة
+        $bookings = $bookings->groupBy(function ($b) {
+          // ممكن تميز المكرر بناءً على العميل أو العنوان
+          return $b->client_id ?: $b->title;
+        })->map(function ($group) {
+          return $group->sortByDesc('start_at')->first();
+        })->values();
+      }
+
+      // 🧮 تصنيف الحجوزات حسب الحالة
+      $inProgress = $bookings->filter(fn($b) => $b->status === 'in_progress');
+      $due = $bookings->filter(fn($b) => $b->status === 'due');
+      $scheduled = $bookings->filter(fn($b) => $b->status === 'scheduled');
+
+      // 🧠 ترتيب العرض النهائي
+      $finalBookings = $inProgress->concat($due)->concat($scheduled);
+
+      // 🔧 تهيئة البيانات للإرسال
+      $data = $finalBookings->map(function ($b) {
+        return [
+          'id' => $b->id,
+          'title' => $b->title,
+          'hall_id' => $b->hall_id,
+          'hall_name' => $b->hall->name ?? '',
+          'client_id' => $b->client_id,
+          'client_name' => $b->client->name ?? '',
+          'client_phone' => $b->client->phone ?? '',
+          'start_at' => optional($b->start_at)->toIso8601String(),
+          'end_at' => optional($b->end_at)->toIso8601String(),
+          'date' => optional($b->start_at)->toDateString(),
+          'time_from' => optional($b->start_at)->format('H:i'),
+          'time_to' => optional($b->end_at)->format('H:i'),
+          'status' => $b->status,
+          'attendees' => $b->attendees ?? 0,
+          'estimated_total' => (float) ($b->estimated_total ?? 0),
+        ];
+      });
+
+      return response()->json($data);
     } catch (\Throwable $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
+      return response()->json(['error' => $e->getMessage()], 500);
     }
-}
+  }
+
 
 
 
@@ -715,46 +730,46 @@ class BookingController extends Controller
     $openShift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
     $isAdmin = $user->hasRole('admin');
     // validate (بقي كما عندك)
-  $data = $request->validate([
-    'hall_id' => 'required|exists:halls,id',
-    'client_id' => 'nullable|exists:clients,id',
-    'client_name' => 'nullable|string|min:3|max:50|required_without:client_id',
-    'client_phone' => ['nullable', 'regex:/^(010|011|012|015)[0-9]{8}$/', 'required_without:client_id'],
-    'title' => 'nullable|string|max:255',
-    'attendees' => [
+    $data = $request->validate([
+      'hall_id' => 'required|exists:halls,id',
+      'client_id' => 'nullable|exists:clients,id',
+      'client_name' => 'nullable|string|min:3|max:50|required_without:client_id',
+      'client_phone' => ['nullable', 'regex:/^(010|011|012|015)[0-9]{8}$/', 'required_without:client_id'],
+      'title' => 'nullable|string|max:255',
+      'attendees' => [
         'required',
         'integer',
         'min:1',
         function ($attr, $val, $fail) use ($request) {
-            $hall = Hall::find($request->hall_id);
-            if ($hall && $val > $hall->max_capacity) {
-                $fail("عدد الأفراد لا يمكن أن يتخطى السعة القصوى للقاعة ({$hall->max_capacity}).");
-            }
+          $hall = Hall::find($request->hall_id);
+          if ($hall && $val > $hall->max_capacity) {
+            $fail("عدد الأفراد لا يمكن أن يتخطى السعة القصوى للقاعة ({$hall->max_capacity}).");
+          }
         }
-    ],
-    'start_at_full' => 'required|date|after:now',
-    'end_at_full' => 'required|date|after:start_at_full',
-    'duration_minutes' => 'required|integer|min:30',
-    'status' => 'nullable|in:scheduled,due,in_progress,finished,cancelled',
-    'deposit' => 'nullable|numeric|min:0',
-    
-    // recurrence
-    'recurrence_type' => 'nullable|in:none,weekly,biweekly,monthly,custom',
-    'recurrence_interval' => 'nullable|integer|min:1',
-    'recurrence_end_date' => 'nullable|date|after_or_equal:start_at_full',
-], [
-    'client_name.required_without' => 'من فضلك أدخل اسم العميل إذا لم تختَر عميلًا موجودًا',
-    'client_phone.required_without' => 'من فضلك أدخل رقم الهاتف إذا لم تختَر عميلًا موجودًا',
-    'client_phone.regex' => 'رقم الهاتف يجب أن يكون مصري صحيح (11 رقم ويبدأ بـ 010 أو 011 أو 012 أو 015)',
-    'attendees.required' => 'عدد الأفراد مطلوب',
-    'attendees.integer' => 'عدد الأفراد يجب أن يكون رقم صحيح',
-    'attendees.min' => 'عدد الأفراد يجب أن يكون على الأقل 1',
-    'start_at_full.after' => 'تاريخ البداية يجب أن يكون بعد الآن',
-    'end_at_full.after' => 'تاريخ النهاية يجب أن يكون بعد بداية الحجز',
-    'recurrence_type.in' => 'نوع التكرار غير صالح',
-    'recurrence_interval.min' => 'المسافة يجب أن تكون على الأقل 1',
-    'recurrence_end_date.after_or_equal' => 'تاريخ انتهاء التكرار يجب أن يكون بعد أو في نفس يوم بداية الحجز',
-]);
+      ],
+      'start_at_full' => 'required|date|after:now',
+      'end_at_full' => 'required|date|after:start_at_full',
+      'duration_minutes' => 'required|integer|min:30',
+      'status' => 'nullable|in:scheduled,due,in_progress,finished,cancelled',
+      'deposit' => 'nullable|numeric|min:0',
+
+      // recurrence
+      'recurrence_type' => 'nullable|in:none,weekly,biweekly,monthly,custom',
+      'recurrence_interval' => 'nullable|integer|min:1',
+      'recurrence_end_date' => 'nullable|date|after_or_equal:start_at_full',
+    ], [
+      'client_name.required_without' => 'من فضلك أدخل اسم العميل إذا لم تختَر عميلًا موجودًا',
+      'client_phone.required_without' => 'من فضلك أدخل رقم الهاتف إذا لم تختَر عميلًا موجودًا',
+      'client_phone.regex' => 'رقم الهاتف يجب أن يكون مصري صحيح (11 رقم ويبدأ بـ 010 أو 011 أو 012 أو 015)',
+      'attendees.required' => 'عدد الأفراد مطلوب',
+      'attendees.integer' => 'عدد الأفراد يجب أن يكون رقم صحيح',
+      'attendees.min' => 'عدد الأفراد يجب أن يكون على الأقل 1',
+      'start_at_full.after' => 'تاريخ البداية يجب أن يكون بعد الآن',
+      'end_at_full.after' => 'تاريخ النهاية يجب أن يكون بعد بداية الحجز',
+      'recurrence_type.in' => 'نوع التكرار غير صالح',
+      'recurrence_interval.min' => 'المسافة يجب أن تكون على الأقل 1',
+      'recurrence_end_date.after_or_equal' => 'تاريخ انتهاء التكرار يجب أن يكون بعد أو في نفس يوم بداية الحجز',
+    ]);
 
     // تحقق الشيفت
     if (!$openShift && !$isAdmin && !empty($data['deposit']) && $data['deposit'] > 0) {
@@ -1252,6 +1267,79 @@ class BookingController extends Controller
     $booking->delete();
     return redirect()->route('bookings.index')->with('success', 'تم حذف الحجز');
   }
+  public function cancel(Booking $booking): RedirectResponse
+  {
+    $user = \Auth::user();
+    DB::beginTransaction();
+
+    try {
+      // حدد اسم العميل لو موجود
+      $clientName = $booking->client->name ?? 'العميل';
+
+      // نجمع كل المقدمات المرتبطة بالحجز
+      $depositSum = BookingDeposit::where('booking_id', $booking->id)->sum('amount');
+
+      if ($booking->status === 'due') {
+
+        // لو الحالة due نغيرها مباشرة لـ cancelled
+        $booking->status = 'cancelled';
+        $booking->save();
+
+        DB::commit();
+
+        return redirect()->route('bookings.index')->with('success', 'تم إلغاء الحجز بنجاح.');
+      }
+
+      if ($booking->status === 'scheduled' && $depositSum > 0) {
+
+        // نجد الشيفت المفتوح للمستخدم الحالي
+        $shift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
+        if (!$shift) {
+          DB::rollBack();
+          return redirect()->route('bookings.index')->with('error', 'لا يوجد شيفت مفتوح لتسجيل المصروف.');
+        }
+
+        // نضيف حدث مصروف في shift_actions
+        $shiftAction = new ShiftAction();
+        $shiftAction->shift_id = $shift->id;
+        $shiftAction->action_type = 'expense_note';
+        $shiftAction->invoice_id = null;
+        $shiftAction->expense_draft_id = null;
+        $shiftAction->amount = 0; // لا إيراد
+        $shiftAction->expense_amount = $depositSum; // قيمة المصروف = مجموع المقدمات
+        $shiftAction->notes = "استرجاع المقدم لحجز العميل: {$clientName}";
+        $shiftAction->save();
+
+        // نزود مجموع المصروفات في الشيفت
+        $shift->total_expense = $shift->total_expense + $depositSum;
+        $shift->save();
+
+        // نحذف أو نخصم المقدمات المرتبطة بهذا الحجز
+        // ملاحظة: الـ booking_deposits مرتبطين بـ invoice_id أيضاً — لو عندك معالجة للفواتير
+        // لازم تتعامل معها هنا. هذا الكود سيحذف تسجيلات المقدم فقط.
+        BookingDeposit::where('booking_id', $booking->id)->delete();
+
+        // نغير حالة الحجز
+        $booking->status = 'cancelled';
+        $booking->save();
+
+        DB::commit();
+
+        return redirect()->route('bookings.index')->with('success', 'تم إلغاء الحجز واسترجاع المقدم وتسجيل المصروف بالشيفت.');
+      }
+
+      // الحالات الأخرى (مثلاً scheduled بدون مقدمات أو حالات أخرى) — فقط نلغي الحجز
+      $booking->status = 'cancelled';
+      $booking->save();
+
+      DB::commit();
+
+      return redirect()->route('bookings.index')->with('success', 'تم إلغاء الحجز.');
+    } catch (\Throwable $e) {
+      DB::rollBack();
+      return redirect()->route('bookings.index')->with('error', 'حدث خطأ أثناء محاولة إلغاء الحجز.');
+    }
+  }
   // app/Http/Controllers/BookingController.php
   public function search(Request $request)
   {
@@ -1320,7 +1408,7 @@ class BookingController extends Controller
     try {
       // إجمالي الفاتورة (نفترض نضع كل المبالغ هنا)
       $invoiceTotal = $hoursTotal + $purchasesTotal;
-      $hoursTotalWithDepositPaid = $hoursTotal - $depositPaid;
+      $hoursTotalWithDepositPaid = max(0, $hoursTotal - $depositPaid);
       $hoursTotalWithDepositPaidAndpurchasesTotal = $hoursTotalWithDepositPaid + $purchasesTotal;
       $invoice = Invoice::where('booking_id', $booking->id)->first();
 
@@ -1343,22 +1431,44 @@ class BookingController extends Controller
       }
 
 
-      if ($purchasesTotal > 0) {
-        InvoiceItem::create([
-          'invoice_id' => $invoice->id,
-          'item_type' => 'product',
-          'product_id' => null,
-          'subscription_id' => null,
-          'booking_id' => $booking->id,
-          'session_id' => null,
-          'name' => 'مشتريات - الحجز #' . $booking->id,
-          'qty' => 1,
-          'price' => $purchasesTotal,
-          'cost' => 0,
-          'total' => $purchasesTotal,
-          'description' => 'ملخص المشتريات عند إنهاء الحجز',
-        ]);
+      if (!empty($request->purchases)) {
+        $purchases = json_decode($request->input('purchases', '[]'), true);
+        foreach ($purchases as $item) {
+          $productId = $item['product_id'] ?? null;
+          $productName = $item['name'] ?? 'منتج غير معروف';
+          $qty = $item['qty'] ?? 1;
+          $price = $item['price'] ?? 0;
+          $cost = $item['cost'] ?? 0;
+          $total = $price * $qty;
+
+          InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'item_type' => 'product',
+            'product_id' => $productId,
+            'subscription_id' => null,
+            'booking_id' => $booking->id,
+            'session_id' => null,
+            'name' => $productName,
+            'qty' => $qty,
+            'price' => $price,
+            'cost' => $cost,
+            'total' => $total,
+            'description' => 'منتج مضاف عند إنهاء الحجز',
+          ]);
+
+          // ↓↓ خصم الكمية من المخزون ↓↓
+          if ($productId) {
+            $product = Product::find($productId);
+            if ($product) {
+              $product->quantity -= $qty;
+              if ($product->quantity < 0)
+                $product->quantity = 0;
+              $product->save();
+            }
+          }
+        }
       }
+
 
       // حدث الحجز: من in_progress إلى finished ووقت النهاية الفعلي
       $booking->update([
@@ -1463,77 +1573,79 @@ class BookingController extends Controller
     $bookings = $bookingsQuery->paginate($perPage)->withQueryString();
 
     $statusCounts = Booking::select('status', DB::raw('COUNT(*) as cnt'))
-        ->where('client_id', $client->id)
-        ->groupBy('status')
-        ->pluck('cnt', 'status')
-        ->toArray();
+      ->where('client_id', $client->id)
+      ->groupBy('status')
+      ->pluck('cnt', 'status')
+      ->toArray();
 
-    $statuses = ['scheduled','due','in_progress','finished','cancelled'];
+    $statuses = ['scheduled', 'due', 'in_progress', 'finished', 'cancelled'];
     $countsByStatus = [];
     foreach ($statuses as $s) {
-        $countsByStatus[$s] = isset($statusCounts[$s]) ? (int)$statusCounts[$s] : 0;
+      $countsByStatus[$s] = isset($statusCounts[$s]) ? (int) $statusCounts[$s] : 0;
     }
 
     $depositsTotal = 0;
     if (Schema::hasTable('booking_deposits')) {
-        $depositsTotal = DB::table('booking_deposits')
-            ->join('bookings', 'booking_deposits.booking_id', '=', 'bookings.id')
-            ->where('bookings.client_id', $client->id)
-            ->sum('booking_deposits.amount');
+      $depositsTotal = DB::table('booking_deposits')
+        ->join('bookings', 'booking_deposits.booking_id', '=', 'bookings.id')
+        ->where('bookings.client_id', $client->id)
+        ->sum('booking_deposits.amount');
     }
 
     $receivedTotal = Booking::where('client_id', $client->id)
-        ->whereNotNull('real_total')
-        ->sum('real_total');
+      ->whereNotNull('real_total')
+      ->sum('real_total');
 
     $estimatedTotal = Booking::where('client_id', $client->id)->sum('estimated_total');
 
     $purchasesTotal = 0;
     if (Schema::hasTable('booking_purchases') && Schema::hasTable('products')) {
-        $purchasesTotal = DB::table('booking_purchases')
-            ->join('bookings', 'booking_purchases.booking_id', '=', 'bookings.id')
-            ->join('products', 'booking_purchases.product_id', '=', 'products.id')
-            ->where('bookings.client_id', $client->id)
-            ->select(DB::raw('SUM(products.price * booking_purchases.quantity) as total'))
-            ->value('total') ?? 0;
+      $purchasesTotal = DB::table('booking_purchases')
+        ->join('bookings', 'booking_purchases.booking_id', '=', 'bookings.id')
+        ->join('products', 'booking_purchases.product_id', '=', 'products.id')
+        ->where('bookings.client_id', $client->id)
+        ->select(DB::raw('SUM(products.price * booking_purchases.quantity) as total'))
+        ->value('total') ?? 0;
     }
 
     $bookingIds = $bookingsAll->pluck('id')->toArray();
 
     $depositsPerBooking = [];
     if (Schema::hasTable('booking_deposits') && !empty($bookingIds)) {
-        $rows = DB::table('booking_deposits')
-            ->select('booking_id', DB::raw('SUM(amount) as total'))
-            ->whereIn('booking_id', $bookingIds)
-            ->groupBy('booking_id')
-            ->get();
-        foreach ($rows as $r) $depositsPerBooking[$r->booking_id] = (float)$r->total;
+      $rows = DB::table('booking_deposits')
+        ->select('booking_id', DB::raw('SUM(amount) as total'))
+        ->whereIn('booking_id', $bookingIds)
+        ->groupBy('booking_id')
+        ->get();
+      foreach ($rows as $r)
+        $depositsPerBooking[$r->booking_id] = (float) $r->total;
     }
 
     $purchasesPerBooking = [];
     if (!empty($bookingIds) && Schema::hasTable('booking_purchases') && Schema::hasTable('products')) {
-        $rows = DB::table('booking_purchases')
-            ->select('booking_purchases.booking_id', DB::raw('SUM(products.price * booking_purchases.quantity) as total'))
-            ->join('products', 'booking_purchases.product_id', '=', 'products.id')
-            ->whereIn('booking_purchases.booking_id', $bookingIds)
-            ->groupBy('booking_purchases.booking_id')
-            ->get();
-        foreach ($rows as $r) $purchasesPerBooking[$r->booking_id] = (float)$r->total;
+      $rows = DB::table('booking_purchases')
+        ->select('booking_purchases.booking_id', DB::raw('SUM(products.price * booking_purchases.quantity) as total'))
+        ->join('products', 'booking_purchases.product_id', '=', 'products.id')
+        ->whereIn('booking_purchases.booking_id', $bookingIds)
+        ->groupBy('booking_purchases.booking_id')
+        ->get();
+      foreach ($rows as $r)
+        $purchasesPerBooking[$r->booking_id] = (float) $r->total;
     }
 
     return view('clients.bookings', [
-        'client' => $client,
-        'bookings' => $bookings,
-        'totalBookings' => $bookingsAll->count(),
-        'countsByStatus' => $countsByStatus,
-        'depositsTotal' => (float)$depositsTotal,
-        'receivedTotal' => (float)$receivedTotal,
-        'estimatedTotal' => (float)$estimatedTotal,
-        'purchasesTotal' => (float)$purchasesTotal,
-        'depositsPerBooking' => $depositsPerBooking,
-        'purchasesPerBooking' => $purchasesPerBooking,
+      'client' => $client,
+      'bookings' => $bookings,
+      'totalBookings' => $bookingsAll->count(),
+      'countsByStatus' => $countsByStatus,
+      'depositsTotal' => (float) $depositsTotal,
+      'receivedTotal' => (float) $receivedTotal,
+      'estimatedTotal' => (float) $estimatedTotal,
+      'purchasesTotal' => (float) $purchasesTotal,
+      'depositsPerBooking' => $depositsPerBooking,
+      'purchasesPerBooking' => $purchasesPerBooking,
     ]);
-}
+  }
 
   public function checkOngoing(Request $request)
   {

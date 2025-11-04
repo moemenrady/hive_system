@@ -7,20 +7,57 @@
 
     <title>@yield('page_title')</title>
     <style>
-        /* drawer profile */
+      :root {
+    /* 🎨 الألوان الأساسية */
+    --bg: #F7F6F5;               /* خلفية الصفحة */
+    --card-bg: #FFFFFF;          /* خلفية الكروت والمودالات */
+    --accent: #D9B1AB;           /* اللون المميز الأساسي */
+    --accent-hover: #C89C96;     /* لون أغمق شوية عند الهوفر */
+    --text: #2F2F2F;             /* لون النصوص الرئيسي */
+    --muted: #777;               /* نصوص خافتة */
+    --border: #E6E3E2;           /* حدود خفيفة */
+
+    /* ✨ مؤثرات وظلال */
+    --shadow-sm: 0 3px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.1);
+
+    /* 🟢 الحواف والتفاصيل */
+    --radius: 14px;
+    --radius-sm: 10px;
+    --transition: all 0.2s ease;
+
+    /* 🔘 ألوان الحالة */
+    --success: #6FCF97;
+    --warning: #F2C94C;
+    --danger: #EB5757;
+
+    /* 🧭 ألوان الأزرار */
+    --btn-green: #27ae60;
+    --btn-green-hover: #219150;
+    --btn-purple: #9b59b6;
+    --btn-purple-hover: #8e44ad;
+}
+
+        /* 🧭 drawer profile */
         .drawer {
             padding: 18px;
             width: 260px;
             box-sizing: border-box;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
         }
 
+        /* 👤 قسم البروفايل داخل الدراور */
         .drawer-profile {
             display: flex;
             gap: 12px;
             align-items: center;
-            padding: 6px 4px;
+            padding: 8px 6px;
         }
 
+        /* 🔵 حاوية الصورة */
         .avatar-wrap {
             position: relative;
             width: 64px;
@@ -28,22 +65,23 @@
             flex: 0 0 64px;
         }
 
+        /* 🪞 الصورة الرمزية (Avatar) */
         .avatar {
             width: 64px;
             height: 64px;
             border-radius: 50%;
-            background: linear-gradient(180deg, #fff, #f6f6f6);
-            border: 1px solid rgba(0, 0, 0, 0.06);
+            background: linear-gradient(180deg, #fff, #f9f9f9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             font-size: 20px;
-            color: #333;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+            color: var(--text);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
         }
 
-        /* الشارة الصغيرة (badge) فوق الدائرة */
+        /* 🎖️ الشارة الصغيرة فوق الصورة */
         .role-badge {
             position: absolute;
             right: -6px;
@@ -53,23 +91,22 @@
             border-radius: 50%;
             display: inline-grid;
             place-items: center;
-            background: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
             color: #fff;
+            font-size: 13px;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
         }
 
-        /* ستايلات لكل دور */
+        /* 🟠 ألوان الشارة حسب الدور */
         .role-admin {
             background: linear-gradient(180deg, #ffb86b, #ff8a6b);
-            color: #fff;
         }
 
         .role-staff {
             background: linear-gradient(180deg, #7cc7ff, #4a9eff);
-            color: #fff;
         }
 
+        /* ℹ️ بيانات المستخدم */
         .profile-info {
             display: flex;
             flex-direction: column;
@@ -80,7 +117,7 @@
         .profile-name {
             font-weight: 800;
             font-size: 15px;
-            color: #222;
+            color: var(--text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -88,10 +125,10 @@
 
         .profile-role {
             font-size: 13px;
-            color: #666;
+            color: var(--muted);
         }
 
-        /* فاصل وخيارات */
+        /* ─────── فاصل وخيارات ─────── */
         .drawer-sep {
             margin: 12px 0;
             border: none;
@@ -99,6 +136,7 @@
             background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.06), transparent);
         }
 
+        /* 🔗 روابط القائمة */
         .drawer-links {
             list-style: none;
             padding: 0;
@@ -110,21 +148,21 @@
         }
 
         .drawer-links a {
-            display: inline-block;
-            color: #333;
+            display: block;
+            color: var(--text);
             text-decoration: none;
             font-weight: 600;
-            padding: 8px 6px;
-            border-radius: 8px;
-            transition: background .18s ease, transform .12s ease;
+            padding: 10px 12px;
+            border-radius: 10px;
+            transition: background 0.18s ease, transform 0.12s ease;
         }
 
         .drawer-links a:hover {
-            background: rgba(0, 0, 0, 0.04);
+            background: rgba(217, 177, 171, 0.12);
             transform: translateX(4px);
         }
 
-        /* responsive: أصغر avatar للموبايل */
+        /* 📱 للموبايل */
         @media (max-width: 576px) {
             .avatar-wrap {
                 width: 52px;
@@ -140,31 +178,32 @@
             .role-badge {
                 width: 26px;
                 height: 26px;
-                right: -6px;
-                bottom: -6px;
+                right: -5px;
+                bottom: -5px;
             }
 
             .drawer {
                 width: 220px;
-                padding: 12px;
+                padding: 14px;
             }
         }
 
+        /* 🔙 زر الرجوع */
         .back-btn {
             position: fixed;
-            /* 👈 بدل absolute */
             top: 20px;
             left: 20px;
-            background: #e5c6c3;
+            background: var(--accent);
             border-radius: 50%;
             padding: 13px;
             cursor: pointer;
             transition: transform 0.2s;
             z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .back-btn:hover {
-            transform: scale(1.1) rotate(-10deg);
+            transform: scale(1.08) rotate(-8deg);
         }
 
         /* Snackbar style */
@@ -205,6 +244,34 @@
         .snackbar i {
             font-size: 16px;
         }
+        /* 🎨 شكل Hive Style للدراور */
+.drawer {
+    background: #121212; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.profile-name {
+    color: #fff !important;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.profile-role {
+    color: #d1d1d1 !important;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.drawer-links a {
+    color: #eee;
+}
+
+.drawer-links a:hover {
+    background: rgba(255, 215, 0, 0.1);
+    color: #ffd700; /* جولد محترق عند الهوفر */
+}
+
     </style>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <!-- Bootstrap CSS -->

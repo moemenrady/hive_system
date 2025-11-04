@@ -34,10 +34,11 @@
 
                     <p><strong>الاسم:</strong> {{ $booking->client->name }}</p>
                     <p><strong>الموبايل:</strong> {{ $booking->client->phone }}</p>
-                    <a href="{{ route('clients.edit', $booking->client->id) }}" class="btn edit-btn" title="تعديل بيانات العميل">
-                    <span class="edit-ico" aria-hidden="true">✏️</span>
-                    <span class="edit-txt">تعديل</span>
-                </a>
+                    <a href="{{ route('clients.edit', $booking->client->id) }}" class="btn edit-btn"
+                        title="تعديل بيانات العميل">
+                        <span class="edit-ico" aria-hidden="true">✏️</span>
+                        <span class="edit-txt">تعديل</span>
+                    </a>
                 </div>
             </div>
 
@@ -295,33 +296,16 @@
 @section('style')
     <style>
         body {
-            background: #fafafa;
+            background: #121212;
+            /* دارك */
+            color: #fff;
             font-family: "Tahoma", sans-serif;
         }
 
         /* ===== Snackbar ===== */
         .snackbar {
-            position: fixed;
-            top: 20px;
-            right: 20px;
             background: #333;
             color: #fff;
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-size: 14px;
-            z-index: 9999;
-            opacity: 0;
-            transform: translateX(120%);
-            transition: opacity 0.4s ease, transform 0.4s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .snackbar.show {
-            opacity: 1;
-            transform: translateX(0);
         }
 
         .snackbar.success {
@@ -332,10 +316,6 @@
             background: #dc3545;
         }
 
-        .snackbar i {
-            font-size: 16px;
-        }
-
         .subscription-container {
             max-width: 800px;
             margin: 40px auto;
@@ -343,19 +323,21 @@
         }
 
         .card {
-            background: #fff;
+            background: #1e1e1e;
+            /* كارد غامق */
             border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
             padding: 30px;
             animation: fadeInUp 0.6s ease;
+            color: #fff;
+            /* كل الكلام جوه أبيض */
         }
-
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #f1f1f1;
+            border-bottom: 2px solid #333;
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
@@ -363,42 +345,44 @@
         .card-header h2 {
             font-size: 26px;
             margin: 0;
+            color: #ffd700;
+            /* الذهب للنص */
         }
 
         .badge {
-            background: #D9B1AB;
-            color: #fff;
+            background: #ffd700;
+            /* الذهب */
+            color: #000;
             padding: 6px 15px;
             border-radius: 30px;
             font-weight: bold;
         }
 
         .section h3 {
-            color: #a86f68;
+            color: #ffd700;
+            /* عناوين الأقسام بالذهبي */
             font-size: 20px;
             margin-bottom: 10px;
         }
 
         .box {
-            background: #fafafa;
+            background: #2a2a2a;
+            /* صندوق الكارد غامق شويه */
             padding: 15px 20px;
             border-radius: 12px;
             margin-bottom: 25px;
+            color: #fff;
+            /* نصوص بيضاء */
         }
 
         .price {
             font-weight: bold;
             font-size: 18px;
-            color: #2b2b2b;
+            color: #ffd700;
+            /* أسعار بالذهبي */
         }
 
-        .actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
-
+        /* الأزرار */
         .btn {
             border: none;
             padding: 12px 18px;
@@ -407,28 +391,42 @@
             cursor: pointer;
             transition: .3s;
             font-size: 15px;
+            color: #fff;
         }
 
-        .products-list {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 14px;
-            /* مسافة مناسبة بين الكروت */
-            margin: 20px 0;
+        .btn.yellow {
+            background: #ffd700;
+            color: #000;
+            border: 1px solid #e6c200;
         }
 
+        .btn.green {
+            background: #4caf50;
+        }
+
+        .btn.red,
+        .btn.btn-danger {
+            background: #f44336;
+        }
+
+        /* المنتجات المختارة */
+        .selected-products span {
+            background: #ffd700;
+            color: #000;
+        }
+
+        /* الكروت */
         .product-item {
-            background: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: #2a2a2a;
+            border: 1px solid #444;
             border-radius: 12px;
             padding: 12px 14px;
             min-width: 120px;
             min-height: 70px;
             font-size: 14px;
             font-weight: 600;
-            color: #333;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
             transition: all 0.25s ease;
             cursor: pointer;
 
@@ -438,64 +436,11 @@
             justify-content: center;
         }
 
-        /* Hover effect */
         .product-item:hover {
             transform: translateY(-4px) scale(1.03);
-            border-color: #ff8884;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-            color: #ff5550;
-        }
-
-        /* شاشات أكبر من 992px (ديسكتوب) */
-        @media (min-width: 992px) {
-            .product-item {
-                min-width: 150px;
-                min-height: 85px;
-                font-size: 15px;
-            }
-        }
-
-        /* شاشات صغيرة (موبايل) */
-        @media (max-width: 576px) {
-            .products-list {
-                gap: 10px;
-            }
-
-            .product-item {
-                min-width: 45%;
-                /* يخلي صف فيه 2 كارت تقريبا */
-                min-height: 65px;
-                font-size: 13px;
-                padding: 10px 12px;
-            }
-        }
-
-        .btn.yellow {
-            background: #ffe483;
-            border: 1px solid #f2d35e;
-        }
-
-        .btn.green {
-            background: #7df77d;
-            color: #111;
-        }
-
-        .btn.red {
-            background: #f05a4f;
-            color: #fff;
-        }
-
-        .selected-products {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .selected-products span {
-            background: #e2bcb7;
-            padding: 6px 12px;
-            border-radius: 10px;
-            font-size: 14px;
+            border-color: #ffd700;
+            box-shadow: 0 6px 16px rgba(255, 215, 0, 0.4);
+            color: #ffd700;
         }
 
         @keyframes fadeInUp {

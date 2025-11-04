@@ -77,13 +77,10 @@
             </div>
         </form>
 
-        {{-- keep the statuses / quick sections below as on details page (optional) --}}
         <div class="section statuses" style="margin-top:18px;">
             <h3>📌 حالة الحساب</h3>
             <div class="box flex-grid">
-                {{-- you can reuse the same blocks from details view --}}
-                {{-- ... --}}
-                <p class="muted">عرض سريع لحالة العميل — يتم عرض التفاصيل في صفحة العرض.</p>
+                <p class="muted">عرض سريع لحالة العميل — التفاصيل في صفحة العرض.</p>
             </div>
         </div>
 
@@ -93,36 +90,31 @@
 
 @section('style')
 <style>
-    /* reuse the same styles as details page + form styles */
-    body { background: #fafafa; font-family: "Tahoma", sans-serif; }
+    body { background: #121212; font-family: "Tahoma", sans-serif; color:#fff; }
     .client-container { max-width: 960px; margin: 40px auto; padding: 20px; position: relative; }
-    .card { background: #fff; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); padding: 26px; animation: fadeInUp .6s ease; }
-    .card-header { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #f1f1f1; margin-bottom: 16px; padding-bottom: 10px; }
-    .card-header h2 { font-size:24px; color:#2b2b2b; margin:0; }
-    .badge { background:#D9B1AB; color:#fff; padding:6px 12px; border-radius:30px; font-weight:bold; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
 
-    .lbl { display:block; font-weight:700; margin-bottom:6px; color:#444; }
-    .input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #ececec; background:#fff; box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); font-size:15px; }
-    .input:focus { outline:none; box-shadow: 0 6px 20px rgba(168,111,104,0.08); transform: translateY(-1px); transition: all .12s ease; }
+    .card { background: #1e1e1e; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); padding: 26px; animation: fadeInUp .6s ease; color:#fff; }
+    .card-header { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #333; margin-bottom: 16px; padding-bottom: 10px; }
+    .card-header h2 { font-size:24px; color:#ffb84d; margin:0; }
+    .badge { background:#ffb84d; color:#000; padding:6px 12px; border-radius:30px; font-weight:bold; box-shadow: 0 3px 6px rgba(0,0,0,0.2); }
 
-    .box { background:#fafafa; padding:14px 18px; border-radius:12px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.04); margin-bottom:18px; font-size:15px; line-height:1.6; }
+    .lbl { display:block; font-weight:700; margin-bottom:6px; color:#ffb84d; }
+    .input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #444; background:#2a2a2a; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); font-size:15px; color:#fff; }
+    .input:focus { outline:none; box-shadow: 0 6px 20px rgba(255,215,0,0.2); transform: translateY(-1px); transition: all .12s ease; }
+
+    .box { background:#2a2a2a; padding:14px 18px; border-radius:12px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.2); margin-bottom:18px; font-size:15px; line-height:1.6; }
 
     .row { display:flex; gap:20px; }
     .col { flex:1; }
 
-    .btn.save-btn { background: linear-gradient(90deg,#D9B1AB,#a86f68); color:#fff; padding:10px 18px; border-radius:12px; border:none; cursor:pointer; font-weight:700; box-shadow: 0 6px 18px rgba(168,111,104,0.14); transition: transform .16s; }
+    .btn.save-btn { background: linear-gradient(90deg,#ffb84d,#ffb84d); color:#000; padding:10px 18px; border-radius:12px; border:none; cursor:pointer; font-weight:700; box-shadow: 0 6px 18px rgba(255,215,0,0.3); transition: transform .16s; }
     .btn.save-btn:hover { transform: translateY(-3px); }
-    .btn.small.cancel-btn { display:inline-block; background:#f1f1f1; color:#444; padding:8px 12px; border-radius:10px; margin-left:8px; text-decoration:none; }
+    .btn.small.cancel-btn { display:inline-block; background:#444; color:#ffb84d; padding:8px 12px; border-radius:10px; margin-left:8px; text-decoration:none; }
 
-    .error { color:#b00020; margin-top:6px; font-size:13px; }
+    .error { color:#f44336; margin-top:6px; font-size:13px; }
 
-    @media (max-width:800px) {
-        .row { flex-direction:column; }
-    }
+    @media (max-width:800px) { .row { flex-direction:column; } }
 
-    @keyframes fadeInUp {
-        from { opacity:0; transform: translateY(14px); }
-        to { opacity:1; transform: translateY(0); }
-    }
+    @keyframes fadeInUp { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform: translateY(0); } }
 </style>
 @endsection

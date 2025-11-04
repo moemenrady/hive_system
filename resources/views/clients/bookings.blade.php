@@ -18,7 +18,7 @@
                 </div>
             </div>
 
-            <!-- Summary stats -->
+            <!-- Summary -->
             <div class="section">
                 <div class="box stats-grid">
                     <div class="stat">
@@ -41,7 +41,6 @@
                         <div class="stat-label">مشتريات الحجوزات</div>
                         <div class="stat-value">{{ number_format($purchasesTotal, 2) }} ج.م</div>
                     </div>
-
                     <div class="stat status-breakdown">
                         <div class="stat-label">تفصيل الحالات</div>
                         <div class="stat-value statuses-inline">
@@ -62,94 +61,68 @@
                         <div class="filter-left">
                             <input id="searchInput" placeholder="ابحث بالعنوان أو القاعة..." />
                             <div class="status-filters">
-                                <label><input type="checkbox" class="status-filter" value="scheduled" checked>
-                                    مجدولة</label>
-                                <label><input type="checkbox" class="status-filter" value="due" checked> مستحقة</label>
-                                <label><input type="checkbox" class="status-filter" value="in_progress" checked>
-                                    جارية</label>
-                                <label><input type="checkbox" class="status-filter" value="finished" checked> منتهية</label>
-                                <label><input type="checkbox" class="status-filter" value="cancelled" checked> ملغاة</label>
+                                @foreach (['scheduled' => 'مجدولة', 'due' => 'مستحقة', 'in_progress' => 'جارية', 'finished' => 'منتهية', 'cancelled' => 'ملغاة'] as $v => $t)
+                                    <label><input type="checkbox" class="status-filter" value="{{ $v }}"
+                                            checked> {{ $t }}</label>
+                                @endforeach
                             </div>
                         </div>
-
                         <div class="filter-right">
-                            <label class="small muted">من:</label>
-                            <input type="date" id="fromDate">
-                            <label class="small muted">إلى:</label>
-                            <input type="date" id="toDate">
+                            <label class="small muted">من:</label><input type="date" id="fromDate">
+                            <label class="small muted">إلى:</label><input type="date" id="toDate">
                             <button id="clearFilters" class="btn small ghost">مسح</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Table -->
+            <!-- Bookings grid -->
             <div class="section">
-                <div class="box table-wrap">
-                    <table id="bookingsTable" class="table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>العنوان</th>
-                                <th>القاعة</th>
-                                <th>الموعد</th>
-                                <th>المدة</th>
-                                <th>الحالة</th>
-                                <th>تقدير</th>
-                                <th>حقيقي</th>
-                                <th>مقدم</th>
-                                <th>مشتريات</th>
-                                <th>إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($bookings as $b)
-                                @php
-                                    $deposit = $depositsPerBooking[$b->id] ?? 0;
-                                    $purchases = $purchasesPerBooking[$b->id] ?? 0;
-                                @endphp
-                                <tr data-status="{{ $b->status }}"
-                                    data-start="{{ \Carbon\Carbon::parse($b->start_at)->format('Y-m-d') }}">
-                                    <td>{{ $b->id }}</td>
-                                    <td class="title">{{ $b->title }}</td>
-                                    <td class="hall">{{ $b->hall->name ?? '—' }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($b->start_at)->format('Y-m-d H:i') }}</td>
-                                    <td>{{ intdiv($b->duration_minutes, 60) }}س {{ $b->duration_minutes % 60 }}د</td>
-                                    <td><span class="status-badge status-{{ $b->status }}">{{ $b->status }}</span>
-                                    </td>
-                                    <td>{{ number_format($b->estimated_total, 2) }}</td>
-                                    <td>{{ number_format($b->real_total ?? 0, 2) }}</td>
-                                    <td>{{ number_format($deposit, 2) }}</td>
-                                    <td>{{ number_format($purchases, 2) }}</td>
-                                    <td>
-                                        <a class="btn small" href="{{ route('bookings.show', $b->id) }}">🔍</a>
-                                        <a class="btn small ghost" href="{{ route('bookings.edit', $b->id) }}">✏️</a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="bookings-grid" id="bookingsGrid">
+                    @foreach ($bookings as $b)
+                        @php
+                            $deposit = $depositsPerBooking[$b->id] ?? 0;
+                            $purchases = $purchasesPerBooking[$b->id] ?? 0;
+                        @endphp
 
-                    <div class="table-footer">
-                        <div class="left">
-                            عرض <strong>{{ $bookings->count() }}</strong> من <strong>{{ $totalBookings }}</strong>
+                        <div class="booking-card" data-status="{{ $b->status }}"
+                            data-start="{{ \Carbon\Carbon::parse($b->start_at)->format('Y-m-d') }}"
+                            data-title="{{ Str::lower($b->title) }}" data-hall="{{ Str::lower($b->hall->name ?? '') }}"
+                            onclick="window.location='{{ route('bookings.show', $b->id) }}'">
+                            <div class="booking-header">
+                                <h4>📅 {{ $b->title }}</h4>
+                                <span class="status-badge status-{{ $b->status }}">{{ $b->status }}</span>
+                            </div>
+
+                            <p>🏛 <strong>القاعة:</strong> {{ $b->hall->name ?? '—' }}</p>
+                            <p>🕒 <strong>الموعد:</strong> {{ \Carbon\Carbon::parse($b->start_at)->format('Y-m-d H:i') }}
+                            </p>
+                            <p>⏱ <strong>المدة:</strong> {{ intdiv($b->duration_minutes, 60) }}س
+                                {{ $b->duration_minutes % 60 }}د</p>
+
+                            <div class="booking-finance">
+                                <p>💰 <strong>تقديري:</strong> {{ number_format($b->estimated_total, 2) }}</p>
+                                <p>💵 <strong>فعلي:</strong> {{ number_format($b->real_total ?? 0, 2) }}</p>
+                                <p>💸 <strong>مقدم:</strong> {{ number_format($deposit, 2) }}</p>
+                                <p>🛒 <strong>مشتريات:</strong> {{ number_format($purchases, 2) }}</p>
+                            </div>
+
+                            <div class="booking-actions">
+                                <a class="btn small" href="{{ route('bookings.show', $b->id) }}">🔍 عرض</a>
+                                <a class="btn small ghost" href="{{ route('bookings.edit', $b->id) }}">✏️ تعديل</a>
+                            </div>
                         </div>
-                        <div class="right">
-                            {{ $bookings->links() }}
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
-
         </div>
     </div>
+
     <script>
         (function() {
-            const table = document.getElementById('bookingsTable');
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
-            const statusCheckboxes = Array.from(document.querySelectorAll('.status-filter'));
+            const cards = Array.from(document.querySelectorAll('.booking-card'));
             const searchInput = document.getElementById('searchInput');
+            const statusCheckboxes = Array.from(document.querySelectorAll('.status-filter'));
             const fromDate = document.getElementById('fromDate');
             const toDate = document.getElementById('toDate');
             const clearBtn = document.getElementById('clearFilters');
@@ -160,48 +133,40 @@
                 return statusCheckboxes.filter(c => c.checked).map(c => c.value);
             }
 
-            function matchesFilters(row) {
+            function matchesFilters(card) {
                 const active = getActiveStatuses();
-                const status = row.dataset.status;
+                const status = card.dataset.status;
                 if (!active.includes(status)) return false;
 
-                const txt = (row.querySelector('.title').textContent + ' ' + row.querySelector('.hall').textContent)
-                    .toLowerCase();
                 const q = searchInput.value.trim().toLowerCase();
-                if (q && !txt.includes(q)) return false;
-
-                const rowDate = row.dataset.start; // YYYY-MM-DD
-                if (fromDate.value) {
-                    if (rowDate < fromDate.value) return false;
-                }
-                if (toDate.value) {
-                    if (rowDate > toDate.value) return false;
+                if (q) {
+                    const txt = card.dataset.title + ' ' + card.dataset.hall;
+                    if (!txt.includes(q)) return false;
                 }
 
+                const date = card.dataset.start;
+                if (fromDate.value && date < fromDate.value) return false;
+                if (toDate.value && date > toDate.value) return false;
                 return true;
             }
 
             function applyFilters() {
                 let visible = 0;
-                rows.forEach(r => {
-                    if (matchesFilters(r)) {
-                        r.style.display = '';
+                cards.forEach(card => {
+                    if (matchesFilters(card)) {
+                        card.style.display = '';
                         visible++;
                     } else {
-                        r.style.display = 'none';
+                        card.style.display = 'none';
                     }
                 });
-                // update footer count (left text)
-                const left = document.querySelector('.table-footer .left');
-                if (left) left.innerHTML = `عرض <strong>${visible}</strong> من <strong>{{ $totalBookings }}</strong>`;
             }
 
-            // events
             statusCheckboxes.forEach(c => c.addEventListener('change', applyFilters));
             searchInput.addEventListener('input', debounce(applyFilters, 250));
             fromDate.addEventListener('change', applyFilters);
             toDate.addEventListener('change', applyFilters);
-            clearBtn.addEventListener('click', function() {
+            clearBtn.addEventListener('click', () => {
                 searchInput.value = '';
                 fromDate.value = '';
                 toDate.value = '';
@@ -209,66 +174,49 @@
                 applyFilters();
             });
 
-            // Export CSV of visible rows
-            exportBtn.addEventListener('click', function() {
-                const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
-                const visibleRows = rows.filter(r => r.style.display !== 'none');
-                const csv = [];
-                csv.push(headers.join(','));
+            exportBtn.addEventListener('click', () => {
+                const visibleCards = cards.filter(c => c.style.display !== 'none');
+                const rows = visibleCards.map(c => [
+                    c.querySelector('h4').innerText,
+                    c.querySelector('.status-badge').innerText,
+                    c.querySelectorAll('p')[0]?.innerText,
+                    c.querySelectorAll('p')[1]?.innerText,
+                    c.querySelectorAll('p')[2]?.innerText,
+                ].map(v => `"${v}"`).join(','));
 
-                visibleRows.forEach(r => {
-                    const cells = Array.from(r.querySelectorAll('td')).map(td => {
-                        let txt = td.innerText.replace(/\n/g, ' ').replace(/,/g,
-                        '؛'); // avoid comma conflicts — use Arabic semicolon
-                        return '"' + txt.trim() + '"';
-                    });
-                    csv.push(cells.join(','));
-                });
-
-                const blob = new Blob([csv.join('\n')], {
+                const csv = ['العنوان,الحالة,القاعة,الموعد,المدة', ...rows].join('\n');
+                const blob = new Blob([csv], {
                     type: 'text/csv;charset=utf-8;'
                 });
-                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                const filename =
-                'bookings_{{ $client->id }}_{{ \Carbon\Carbon::now()->format('Ymd') }}.csv';
-                a.download = filename;
-                document.body.appendChild(a);
+                a.href = URL.createObjectURL(blob);
+                a.download = 'bookings_{{ $client->id }}_{{ now()->format('Ymd') }}.csv';
                 a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(a.href);
             });
 
-            // Print (print only the card area)
-            printBtn.addEventListener('click', function() {
+            printBtn.addEventListener('click', () => {
                 const printContents = document.querySelector('.client-container').innerHTML;
                 const w = window.open('', '', 'height=800,width=1200');
                 w.document.write('<html><head><title>طباعة — حجوزات {{ $client->name }}</title>');
                 w.document.write(
-                    '<style>body{font-family: Tahoma, sans-serif; direction:rtl; padding:20px;} table{width:100%;border-collapse:collapse;} td,th{padding:8px;border:1px solid #ddd;} .status-badge{padding:4px 8px;border-radius:6px;}</style>'
+                    '<style>body{font-family:Cairo,sans-serif;direction:rtl;background:#fff;color:#000;} .booking-card{border:1px solid #ccc;margin:8px;padding:10px;border-radius:10px;} h4{margin:0 0 5px;}</style>'
                     );
-                w.document.write('</head><body dir="rtl">');
+                w.document.write('</head><body>');
                 w.document.write(printContents);
                 w.document.write('</body></html>');
                 w.document.close();
-                w.focus();
-                setTimeout(() => {
-                    w.print();
-                    w.close();
-                }, 500);
+                w.print();
             });
 
-            // debounce helper
-            function debounce(fn, wait) {
+            function debounce(fn, delay) {
                 let t;
                 return function() {
                     clearTimeout(t);
-                    t = setTimeout(() => fn.apply(this, arguments), wait);
+                    t = setTimeout(() => fn.apply(this, arguments), delay);
                 };
             }
 
-            // initial apply
             applyFilters();
         })();
     </script>
@@ -276,10 +224,23 @@
 
 @section('style')
     <style>
-        /* Base (مطابق لستايل صفحة العميل) */
+        :root {
+            --bg-dark: #0e0e11;
+            --card-bg: #16161a;
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f5f5f5;
+            --text-dim: #b5b5b5;
+            --accent: #e5b35c;
+            --accent-dark: #c29545;
+            --danger: #ff6b6b;
+            --success: #7df59a;
+            --info: #74c0fc;
+        }
+
         body {
-            background: #fafafa;
-            font-family: "Tahoma", sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: "Cairo", sans-serif;
         }
 
         .client-container {
@@ -289,11 +250,12 @@
         }
 
         .card {
-            background: #fff;
+            background: var(--card-bg);
             border-radius: 20px;
-            box-shadow: 0 6px 26px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
             padding: 22px;
-            animation: fadeInUp .5s ease;
+            box-shadow: 0 0 18px rgba(0, 0, 0, 0.4);
+            animation: fadeInUp .4s ease;
         }
 
         .card-header {
@@ -301,15 +263,23 @@
             justify-content: space-between;
             align-items: flex-start;
             gap: 12px;
-            border-bottom: 2px solid #f5f5f5;
+            border-bottom: 1px solid var(--border);
             padding-bottom: 12px;
             margin-bottom: 14px;
         }
 
         .card-header h2 {
             font-size: 22px;
+            color: var(--accent);
             margin: 0;
-            color: #2b2b2b;
+        }
+
+        .muted {
+            color: var(--text-dim);
+        }
+
+        .small {
+            font-size: 13px;
         }
 
         .header-actions {
@@ -323,36 +293,32 @@
             cursor: pointer;
             font-weight: 700;
             border-radius: 10px;
-            padding: 10px 14px;
-            background: #D9B1AB;
-            color: #fff;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-            transition: transform .14s ease;
+            padding: 8px 14px;
+            background: var(--accent);
+            color: #000;
+            transition: background .2s ease, transform .15s ease;
         }
 
         .btn:hover {
-            transform: translateY(-3px);
-            background: #a86f68;
-        }
-
-        .btn.ghost {
-            background: transparent;
-            color: #555;
-            box-shadow: none;
-            border: 1px solid #eee;
-            padding: 8px 10px;
+            background: var(--accent-dark);
+            transform: translateY(-2px);
         }
 
         .btn.small {
             padding: 6px 10px;
             font-size: 13px;
-            border-radius: 9px;
+            border-radius: 8px;
         }
 
-        .btn.small.ghost {
+        .btn.ghost {
             background: transparent;
-            color: #555;
-            border: 1px solid #eee;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn.ghost:hover {
+            background: var(--accent-dark);
+            color: #000;
         }
 
         .section {
@@ -360,29 +326,28 @@
         }
 
         .box {
-            background: #fafafa;
-            padding: 14px;
+            background: #1c1c20;
             border-radius: 12px;
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            padding: 14px;
         }
 
         /* stats grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 12px;
-            align-items: center;
         }
 
         .stat {
-            padding: 12px;
-            background: #fff;
+            background: #1b1b1f;
             border-radius: 10px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border);
+            padding: 12px;
         }
 
         .stat-label {
-            color: #7a7a7a;
+            color: var(--text-dim);
             font-size: 13px;
         }
 
@@ -390,17 +355,7 @@
             font-size: 18px;
             font-weight: 800;
             margin-top: 6px;
-            color: #2b2b2b;
-        }
-
-        .statuses-inline .pill {
-            display: inline-block;
-            margin: 4px 6px 0 0;
-            padding: 6px 8px;
-            background: #f5f5f5;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 13px;
+            color: var(--accent);
         }
 
         /* filters */
@@ -412,145 +367,144 @@
             flex-wrap: wrap;
         }
 
-        .filters-row input[type="date"],
-        #searchInput {
-            padding: 8px 10px;
+        #searchInput,
+        input[type="date"] {
+            background: #1b1b1f;
+            border: 1px solid var(--border);
             border-radius: 8px;
-            border: 1px solid #ececec;
-            min-width: 180px;
+            color: var(--text-main);
+            padding: 8px 10px;
         }
 
-        #searchInput {
-            width: 320px;
+        #searchInput::placeholder {
+            color: var(--text-dim);
         }
 
         .status-filters label {
             margin-right: 12px;
+            color: var(--text-dim);
             font-weight: 600;
         }
 
         .status-filters input {
-            transform: scale(1.05);
-            margin-left: 6px;
-            margin-right: 6px;
+            accent-color: var(--accent);
+            transform: scale(1.1);
+            margin: 0 6px;
         }
 
-        /* table */
-        .table-wrap {
-            overflow: auto;
-        }
-
-        table.table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1000px;
-        }
-
-        table.table th,
-        table.table td {
-            padding: 10px 12px;
-            text-align: left;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-            color: #333;
-        }
-
-        table.table thead th {
-            background: transparent;
-            color: #6b6b6b;
-            font-weight: 800;
-            font-size: 13px;
-            position: sticky;
-            top: 0;
-            backdrop-filter: blur(2px);
-            z-index: 2;
-        }
-
-        .status-badge {
-            padding: 6px 8px;
-            border-radius: 8px;
-            font-weight: 800;
-            text-transform: capitalize;
-            display: inline-block;
-        }
-
-        .status-scheduled {
-            background: #fff4e5;
-            color: #b26a00;
-        }
-
-        .status-due {
-            background: #fff7e9;
-            color: #b26a00;
-        }
-
-        .status-in_progress {
-            background: #e8f7ff;
-            color: #176fb7;
-        }
-
-        .status-finished {
-            background: #e9ffef;
-            color: #1f7a3a;
-        }
-
-        .status-cancelled {
-            background: #ffeef0;
-            color: #b31d2b;
-        }
-
-        .table-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* bookings grid */
+        .bookings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 16px;
             margin-top: 12px;
         }
 
-        .muted {
-            color: #7a7a7a;
+        .booking-card {
+            background: #16161a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 18px;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+            transition: transform 0.25s ease, border-color 0.25s ease;
         }
 
-        .small {
+        .booking-card:hover {
+            transform: translateY(-6px);
+            border-color: #ffb84d;
+        }
+
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .booking-card h4 {
+            font-size: 18px;
+            color: #ffb84d;
+            margin: 0;
+        }
+
+        .booking-card p {
+            margin: 4px 0;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .booking-card strong {
+            color: #fff;
+        }
+
+        .booking-finance {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 8px;
+            padding-top: 8px;
+        }
+
+        .booking-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 700;
             font-size: 13px;
+            text-transform: capitalize;
+        }
+
+        .status-scheduled {
+            background: rgba(255, 200, 100, 0.1);
+            color: var(--accent);
+        }
+
+        .status-due {
+            background: rgba(255, 200, 100, 0.1);
+            color: var(--accent-dark);
+        }
+
+        .status-in_progress {
+            background: rgba(116, 192, 252, 0.15);
+            color: var(--info);
+        }
+
+        .status-finished {
+            background: rgba(125, 245, 154, 0.15);
+            color: var(--success);
+        }
+
+        .status-cancelled {
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--danger);
         }
 
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(14px);
+                transform: translateY(12px);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: none;
             }
         }
 
-        @media (max-width:1000px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+        @media (max-width:600px) {
+            .booking-card {
+                padding: 14px;
             }
 
-            #searchInput {
-                width: 180px;
-            }
-
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-        }
-
-        @media (max-width:700px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            table.table {
-                min-width: 900px;
+            .booking-card h4 {
+                font-size: 16px;
             }
         }
     </style>
-
 @endsection

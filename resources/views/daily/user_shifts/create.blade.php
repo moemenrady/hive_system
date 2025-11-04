@@ -1,9 +1,7 @@
 @extends('layouts.app_page')
 
 @section('content')
-
     @php
-        // خريطة action_type => label عربي
         $actionLabels = [
             'new_subscription' => 'اشتراك جديد',
             'renew_subscription' => 'تجديد اشتراك',
@@ -14,6 +12,7 @@
             'expense_note' => 'إضافة مصروف',
         ];
     @endphp
+
     <div class="shift-wrapper">
 
         {{-- Alerts --}}
@@ -27,14 +26,8 @@
                     showConfirmButton: false,
                     timer: 3500,
                     timerProgressBar: true,
-                    background: '#fff',
-                    color: '#333',
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    }
+                    background: '#222',
+                    color: '#fff'
                 });
             </script>
         @endif
@@ -49,21 +42,14 @@
                     showConfirmButton: false,
                     timer: 3500,
                     timerProgressBar: true,
-                    background: '#fff',
-                    color: '#333',
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    }
+                    background: '#222',
+                    color: '#fff'
                 });
             </script>
         @endif
 
         @if (!$shift)
-            {{-- مفيش شيفت مفتوح --}}
-            <div class="form-container animate__animated animate__fadeInUp" style="text-align:center;">
+            <div class="form-container no-shift animate__animated animate__fadeInUp" style="text-align:center;">
                 <h2 class="page-title">لم تبدأ أي شيفت بعد</h2>
                 <form action="{{ route('shift.start') }}" method="POST">
                     @csrf
@@ -71,7 +57,6 @@
                 </form>
             </div>
         @else
-            {{-- في شيفت مفتوح --}}
             <h2 class="page-title">الشيفت الحالي</h2>
 
             <div class="form-container animate__animated animate__fadeInUp shift-summary">
@@ -106,10 +91,9 @@
 
             <h3 class="page-title">العمليات خلال الشيفت</h3>
 
-            <div class="form-container animate__animated animate__fadeInUp actions-wrapper" aria-live="polite">
-                <!-- Desktop Table -->
+            <div class="form-container animate__animated animate__fadeInUp actions-wrapper">
                 <div class="table-responsive">
-                    <table class="actions-table" role="table" aria-label="قائمة العمليات">
+                    <table class="actions-table">
                         <thead>
                             <tr>
                                 <th>العملية</th>
@@ -122,9 +106,7 @@
                         <tbody>
                             @forelse ($shift->actions as $action)
                                 <tr>
-                                    <td>
-                                        {{ $actionLabels[$action->action_type] ?? $action->action_type }}
-                                    </td>
+                                    <td>{{ $actionLabels[$action->action_type] ?? $action->action_type }}</td>
                                     <td>{{ $action->amount > 0 ? number_format($action->amount, 2) : '-' }}</td>
                                     <td>{{ $action->expense_amount ? number_format($action->expense_amount, 2) : '-' }}
                                     </td>
@@ -139,306 +121,142 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Mobile Cards -->
-                <div class="cards-grid" aria-hidden="true">
-                    @forelse ($shift->actions as $action)
-                        <article class="action-card" role="article" aria-label="عملية {{ $action->id }}">
-                            <div class="card-top">
-                                <div class="card-type">
-                                    {{ $actionLabels[$action->action_type] ?? $action->action_type }}
-                                </div>
-                                <div class="card-date">{{ $action->created_at->format('Y-m-d H:i') }}</div>
-                            </div>
-
-                            <div class="card-body">
-                                <div class="card-row"><span class="meta">المبلغ:</span>
-                                    <span
-                                        class="val">{{ $action->amount > 0 ? number_format($action->amount, 2) : '-' }}</span>
-                                </div>
-                                <div class="card-row"><span class="meta">المصروف:</span>
-                                    <span
-                                        class="val">{{ $action->expense_amount ? number_format($action->expense_amount, 2) : '-' }}</span>
-                                </div>
-                                <div class="card-row note"><span class="meta">الوصف:</span>
-                                    <div class="val">{{ $action->notes ?? '-' }}</div>
-                                </div>
-                            </div>
-                        </article>
-                    @empty
-                        <div class="no-cards">لا توجد عمليات مسجلة</div>
-                    @endforelse
-                </div>
             </div>
         @endif
     </div>
 
     <style>
         :root {
-            --bg: #F2F2F2;
-            --card-bg: #fff;
-            --accent-start: #4CAF50;
-            --accent-end: #2e7d32;
-            --danger-start: #e53935;
-            --danger-end: #b71c1c;
-            --text: #333;
-            --muted: #666;
+            --bg-dark: radial-gradient(circle at top right, #101028 0%, #070710 100%);
+            --card-dark: rgba(255, 255, 255, 0.05);
+            --accent: linear-gradient(135deg, #7b5cff, #00c2ff);
+            --danger: linear-gradient(135deg, #ff416c, #ff4b2b);
+            --text-light: #fff;
+            --text-muted: #aaa;
+            --blur: blur(20px);
             --radius: 18px;
         }
 
         body {
             font-family: "Cairo", sans-serif;
-            background: var(--bg);
-            margin: 0;
+            background: var(--bg-dark);
+            color: var(--text-light);
             padding: 32px;
-            color: var(--text);
-            -webkit-font-smoothing: antialiased;
+            backdrop-filter: var(--blur);
         }
 
         .page-title {
-            font-size: 22px;
-            margin-bottom: 16px;
-            color: #444;
+            font-size: 24px;
             text-align: center;
-            font-weight: 600;
+            font-weight: 700;
+            background: linear-gradient(90deg, #a88beb, #00c2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
         }
 
         .form-container {
-            background: var(--card-bg);
-            padding: 22px;
+            background: var(--card-dark);
             border-radius: var(--radius);
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
-            margin-bottom: 20px;
+            padding: 24px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            backdrop-filter: var(--blur);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        /* summary grid */
-        .shift-summary .summary-grid {
+        .summary-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-            align-items: center;
-            margin-bottom: 16px;
+            gap: 16px;
+            margin-bottom: 18px;
         }
 
         .summary-item {
-            background: #fff;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #f0f0f0;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 14px;
             text-align: center;
+            transition: 0.3s;
+        }
+
+        .summary-item:hover {
+            background: rgba(255, 255, 255, 0.12);
         }
 
         .summary-label {
             font-size: 13px;
-            color: var(--muted);
-            margin-bottom: 6px;
+            color: var(--text-muted);
         }
 
         .summary-value {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 700;
-            color: #222;
-        }
-
-        .end-form {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 8px;
+            color: #fff;
         }
 
         .btn-start-shift,
         .btn-end-shift {
             border: none;
-            padding: 12px 22px;
+            padding: 14px 22px;
             border-radius: 12px;
-            color: #fff;
             font-weight: 700;
             cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.18s, box-shadow 0.18s;
+            transition: 0.3s;
+            color: #fff;
         }
 
         .btn-start-shift {
-            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            background: var(--accent);
             width: 100%;
-            max-width: 320px;
+            max-width: 280px;
         }
 
         .btn-end-shift {
-            background: linear-gradient(135deg, var(--danger-start), var(--danger-end));
-            min-width: 160px;
+            background: var(--danger);
         }
 
         .btn-start-shift:hover,
         .btn-end-shift:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-        }
-
-        /* table */
-        .table-responsive {
-            overflow-x: auto;
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
         }
 
         .actions-table {
             width: 100%;
             border-collapse: collapse;
-            text-align: center;
+            color: #fff;
             font-size: 14px;
         }
 
-        .actions-table th,
-        .actions-table td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #eee;
-            vertical-align: middle;
+        .actions-table th {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #bbb;
         }
 
-        .actions-table th {
-            background: #fafafa;
-            font-weight: 700;
-            color: #444;
-            position: sticky;
-            top: 0;
-            z-index: 1;
+        .actions-table td {
+            text-align: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .td-notes {
-            max-width: 280px;
-            white-space: nowrap;
+            color: #ccc;
+            max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
-            direction: rtl;
+            white-space: nowrap;
         }
 
-        /* mobile cards */
-        .cards-grid {
-            display: none;
-            gap: 12px;
-        }
-
-        .action-card {
-            background: linear-gradient(180deg, #fff, #fff);
-            border-radius: 12px;
-            padding: 12px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .card-top {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .card-type {
-            font-weight: 700;
-            color: #222;
-        }
-
-        .card-date {
-            font-size: 12px;
-            color: var(--muted);
-        }
-
-        .card-body .card-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            align-items: center;
-            padding: 6px 0;
-            border-top: 1px dashed #f3f3f3;
-        }
-
-        .card-body .card-row:first-of-type {
-            border-top: none;
-        }
-
-        .card-body .note .val {
-            white-space: normal;
-            text-align: left;
-        }
-
-        .meta {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        .val {
-            font-weight: 600;
-            color: #222;
-        }
-
-        .no-cards {
-            text-align: center;
-            color: var(--muted);
-            padding: 14px 0;
-        }
-
-        /* responsiveness */
         @media (max-width: 900px) {
             body {
                 padding: 16px;
             }
 
-            .shift-summary .summary-grid {
+            .summary-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-
-            .actions-wrapper .table-responsive {
-                display: none;
-            }
-
-            .cards-grid {
-                display: grid;
-                grid-template-columns: 1fr;
-            }
-
-            .end-form {
-                justify-content: center;
-            }
-
-            .btn-end-shift {
-                width: 100%;
-                max-width: none;
-            }
-
-            .summary-item {
-                text-align: left;
-                padding: 10px;
-            }
-
-            .summary-label {
-                text-align: left;
-            }
-
-            .summary-value {
-                text-align: left;
-            }
-
-            .page-title {
-                font-size: 20px;
-            }
-        }
-
-        @media (min-width: 901px) and (max-width: 1200px) {
-            .shift-summary .summary-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .td-notes {
-                max-width: 200px;
-            }
-        }
-
-        /* accessibility focus */
-        button:focus,
-        a:focus {
-            outline: 3px solid rgba(0, 0, 0, 0.06);
-            outline-offset: 2px;
         }
     </style>
 @endsection

@@ -183,179 +183,222 @@
         })();
     </script>
 @endsection
-
 @section('style')
-    @parent
-    <style>
-        /* اكبر بادنج على الأطراف ليشعر بالراحة */
+@parent
+<style>
+    /* ===== الحاوية العامة ===== */
+    .subscription-container.simple-padding {
+        max-width: 1100px;
+        margin: 28px auto;
+        padding: 0 40px;
+        color: #fff;
+    }
+
+    @media (max-width:900px) {
         .subscription-container.simple-padding {
-            max-width: 1100px;
-            margin: 28px auto;
-            padding: 0 40px;
-            /* مساحة على الجانبين */
+            padding: 0 20px;
+            margin: 18px auto;
         }
+    }
 
-        @media (max-width:900px) {
-            .subscription-container.simple-padding {
-                padding: 0 20px;
-                margin: 18px auto;
-            }
-        }
+    /* ===== الكارت الرئيسي ===== */
+    .compact-card {
+        padding: 20px;
+        border-radius: 18px;
+        background: #1b1b21;
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 215, 0, 0.08);
+    }
 
-        /* بطاقة أصغر وبسيطة */
-        .compact-card {
-            padding: 18px;
-            border-radius: 14px;
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
-            background: #fff;
-        }
+    /* ===== العنوان ===== */
+    .simple-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: none;
+        margin-bottom: 16px;
+    }
 
-        .simple-header {
-            display: flex;
-            align-items: center;
-            border-bottom: none;
-            margin-bottom: 14px;
-            padding-bottom: 0;
-        }
+    .simple-header h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: #FFD700;
+        text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+    }
 
-        .simple-header h2 {
-            font-size: 18px;
-            margin: 0;
-            color: #2b2b2b;
-        }
+    /* ===== الصندوق الفارغ ===== */
+    .empty-box {
+        text-align: center;
+        color: #ccc;
+        padding: 26px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px dashed rgba(255, 215, 0, 0.2);
+    }
 
-        .empty-box {
-            text-align: center;
-            color: #666;
-            padding: 26px;
-            border-radius: 12px;
-            background: #fbfbfb;
-        }
+    /* ===== شبكة الزيارات ===== */
+    .visits-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
 
-        /* قائمة الزيارات: grid بسيط */
+    .visit-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: linear-gradient(145deg, #1e1e25, #2a2a32);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 215, 0, 0.08);
+        align-items: flex-start;
+        transition: all 0.25s ease;
+    }
+
+    .visit-row:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.15);
+    }
+
+    .visit-left {
+        flex: 1;
+    }
+
+    .visit-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #FFD700;
+        margin-bottom: 8px;
+    }
+
+    .visit-details strong {
+        color: #FFD700;
+    }
+
+/* ===== إبراز ميعاد الزيارة ===== */
+.visit-details div:first-child {
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 14px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+
+    /* ===== الأزرار ===== */
+    .btn {
+        background: linear-gradient(135deg, #e6b800, #b8860b);
+        color: #1b1b21;
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 13px;
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        background: linear-gradient(135deg, #ffd700, #ffae00);
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+
+    /* ===== الشيب ===== */
+    .chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 13px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+    }
+
+    .chip.green {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+    }
+
+    /* ===== الصفحات ===== */
+    .pagination-wrap {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* ===== سناكبار ===== */
+    .snackbar {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        background: #222;
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 9999;
+        opacity: 0;
+        transform: translateX(120%);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(255, 215, 0, 0.25);
+    }
+
+    .snackbar.show {
+        opacity: 1;
+        transform: translateX(0);
+        box-shadow: 0 0 18px rgba(255, 215, 0, 0.25);
+    }
+
+    .snackbar.error {
+        background: #a30000;
+        border-color: #ff4c4c;
+    }
+
+    /* ===== موبايل ===== */
+    @media (max-width:900px) {
         .visits-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            grid-template-columns: 1fr;
         }
 
-        .visit-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 10px;
-            background: linear-gradient(180deg, #fff, #fcfcfc);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
-            align-items: center;
-            transition: transform .14s ease, box-shadow .14s ease;
+        .compact-card {
+            padding: 16px;
         }
 
-        .visit-row:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
+        .subscription-container.simple-padding {
+            padding: 0 16px;
         }
+    }
+    /* ===== ملاحظات دارك ===== */
+.notes-container {
+    background: #2b2b2b !important; /* نفس خلفية الكروت */
+    border-radius: 12px;
+    padding: 15px 20px;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+    color: #ffffff; /* النص أبيض */
+}
 
-        .visit-left {
-            flex: 1;
-            min-width: 0;
-        }
+.notes-container textarea,
+.notes-container input,
+.notes-container .note {
+    background: transparent !important;
+    border: 1px solid #444;
+    color: #ffffff !important;
+}
 
-        .visit-title {
-            font-size: 14px;
-            color: #222;
-            margin-bottom: 6px;
-        }
+.notes-container label {
+    color: #ffd700; /* العنوان ذهبي */
+}
 
-        .visit-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
+.notes-container .note {
+    font-size: 16px;
+    line-height: 1.6;
+}
 
-        .chip {
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 13px;
-            background: #f1f1f1;
-        }
-
-        .chip.green {
-            background: #e8f6ea;
-            color: #0a8a3a;
-        }
-
-        .small {
-            font-size: 13px;
-            color: #666;
-        }
-
-        /* أزرار مبسطة */
-        .btn {
-            background: #D9B1AB;
-            color: #fff;
-            padding: 8px 10px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 13px;
-        }
-
-        .btn:hover {
-            transform: scale(1.02);
-        }
-
-        /* paginate wrapper */
-        .pagination-wrap {
-            margin-top: 14px;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* responsive: عمود واحد للموبايل */
-        @media (max-width:900px) {
-            .visits-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .compact-card {
-                padding: 16px;
-            }
-
-            .subscription-container.simple-padding {
-                padding: 0 16px;
-            }
-        }
-
-        /* snackbar */
-        .snackbar {
-            position: fixed;
-            top: 18px;
-            right: 18px;
-            background: #333;
-            color: #fff;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 9999;
-            opacity: 0;
-            transform: translateX(120%);
-            transition: opacity 0.32s ease, transform 0.32s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .snackbar.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .snackbar.error {
-            background: #dc3545;
-        }
-    </style>
-
+</style>
 @endsection

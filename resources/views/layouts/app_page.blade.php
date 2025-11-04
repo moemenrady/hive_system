@@ -11,88 +11,125 @@
 
     </title>
     @yield('style')
+    
 
     <style>
-        /* 🌙 Dark Modern Style */
-        :root {
-            --bg-color: #0e0e11;
-            /* نفس layout */
-            --card-bg: #16161a;
-            /* لون الكروت */
-            --accent: #ffb84d;
-            /* أزرار وألوان مميزة */
-            --accent-light: #ffe6a3;
-            /* ألوان فاتحة للنصوص */
-            --text-main: #f5f5f5;
-            /* النصوص الأساسية */
-            --text-dim: #bfbfbf;
-            /* النصوص الثانوية */
-            --border-light: rgba(255, 255, 255, 0.08);
-            --theme-primary: #1a1a1d;
-            /* خلفية الكروت */
-            --btn-bg: #ffb84d;
-            --btn-border: #f2d35e;
-            --btn-text: #111;
-        }
+:root {
+    --bg-color: #0e0e11;
+    --card-bg: #16161a;
+    --accent: #ffb84d;
+    --accent-light: #ffe6a3;
+    --text-main: #f5f5f5;
+    --text-dim: #bfbfbf;
+    --border-light: rgba(255, 255, 255, 0.08);
+    --theme-primary: #1a1a1d;
+    --btn-bg: #ffb84d;
+    --btn-border: #f2d35e;
+    --btn-text: #111;
+}
 
-        body {
-            background: var(--bg-color) !important;
-            color: var(--text-main) !important;
-        }
+/* ✅ خلفية عامة */
+body {
+    background: var(--bg-color) !important;
+    color: var(--text-main) !important;
+    font-family: 'Cairo', sans-serif;
+}
 
-        .session-card {
-            background: var(--theme-primary) !important;
-            color: #fff !important;
-        }
+/* ✅ الكروت */
+.session-card,
+.card,
+.error-box {
+    background: var(--card-bg) !important;
+    color: var(--text-main) !important;
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+}
 
-        .btn-submit.primary {
-            background: linear-gradient(135deg, #ffffff, #747474) !important;
-        }
+.session-card:hover,
+.card:hover,
+.error-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+    border-color: var(--accent);
+}
+
+/* ✅ الأزرار */
+.btn-submit.primary,
+button,
+a.btn {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid var(--btn-border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-submit.primary:hover,
+button:hover,
+a.btn:hover {
+    background: var(--accent-light);
+    color: #000;
+}
+
+.space{
+  height: 60px;
+}
+/* ✅ Navbar شفافة تمامًا */
+.navbar-custom {
+    position: fixed;
+    top: 10px; /* تبعد شوية عن الحافة */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    z-index: 1500;
+
+    /* مفيش خلفية أو حدود أو ظل */
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
+/* الروابط */
+.navbar-custom a {
+    text-decoration: none;
+    color: var(--text-dim);
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* hover و active يفضلوا يشتغلوا عادي */
+.navbar-custom a:hover {
+    color: var(--accent);
+    background: rgba(255, 184, 77, 0.08);
+    transform: translateY(-2px);
+}
+
+.navbar-custom a.active {
+    background: var(--accent);
+    color: #000;
+    box-shadow: 0 4px 14px rgba(255, 184, 77, 0.3);
+    transform: scale(1.05);
+}
 
 
-        /* ✅ Navbar */
-        .navbar-custom {
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: 0;
-            padding: 14px 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 24px;
-            backdrop-filter: blur(var(--blur));
-            background: rgba(15, 15, 18, 0.6);
-            border-bottom: 1px solid var(--border-light);
-            z-index: 1500;
-        }
-
-        .navbar-custom a {
-            text-decoration: none;
-            color: var(--text-dim);
-            font-weight: 600;
-            padding: 10px 18px;
-            border-radius: 8px;
-            transition: all 0.25s ease;
-        }
-
-        .navbar-custom a:hover {
-            color: var(--accent);
-            background: rgba(255, 184, 77, 0.08);
-            transform: translateY(-2px);
-        }
-
-        .navbar-custom a.active {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 4px 14px rgba(255, 184, 77, 0.3);
-            transform: scale(1.05);
-        }
 
         /* 🟡 عنوان الفيتشر */
         .title {
             text-align: center;
-            color: var(--accent-light);
+            color: var(--accent-ligt);
             font-size: 22px;
             font-weight: 800;
             margin: 18px auto 28px;
@@ -110,7 +147,7 @@
             align-items: center;
             gap: 8px;
             background: linear-gradient(90deg, #ffb84d, #ffda7f);
-            color: #1a1a1a;
+            color: #ffffff;
             padding: 10px 18px;
             border-radius: 12px;
             font-weight: 700;
@@ -291,6 +328,9 @@
     <div class="desktop-nav">
         @include('layouts.page_navigation')
     </div>
+      <div class="space"></div>
+
+
     @yield('page_title')
     @if (session('shift_required'))
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -3,6 +3,8 @@
 @section('title', 'إدارة الحجوزات')
 
 @section('content')
+      <div class="space"></div>
+
     <div class="page-container">
     @section('page_title')
         <h1 class="title">📅 إدارة الحجوزات</h1>    @endsection
@@ -297,6 +299,9 @@
         /* لإخفاء الوميض أثناء الحركة */
         -webkit-tap-highlight-color: transparent;
     }
+.btn-outline-primary {
+    color: #fff !important; /* يجعل النص أبيض */
+}
 
     /* لمعان عصري يمر على الزر */
     .add-booking-btn::before {
@@ -310,9 +315,9 @@
     }
 
     .add-booking-btn:hover {
-        background-color: var(--btn-bg-hover);
+        background-color: #fff;
         transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 10px 22px rgba(0, 0, 0, .16), inset 0 -2px 0 rgba(0, 0, 0, .05);
+        box-shadow: 0 10px 22px rgba(0, 0, 0, .16), inset 0 -2px 0 rgba(0, 0, 0, 0.014);
         border-color: #e9c94e;
     }
 
@@ -403,5 +408,91 @@
             text-align: center;
             color: #888;
         }
+
+
+        /* ===== صندوق البحث والفلاتر ===== */
+.filters-box {
+    background-color: #1f1f23; /* داكن */
+    color: #fff;
+    border: 1px solid #333;
+    border-radius: 10px;
+}
+
+.filters-box .form-label {
+    color: #f5f5f5;
+}
+
+.filters-box .form-control {
+    background-color: #2c2c33;
+    color: #fff;
+    border: 1px solid #444;
+}
+
+.filters-box .form-control::placeholder {
+    color: #aaa;
+}
+
+.filters-box .form-check-label {
+    color: #fff;
+}
+
+.filters-box .form-check-input:checked {
+    background-color: #e9c94e; /* لون متناسق مع السيستم */
+    border-color: #e9c94e;
+}
+
+/* ===== الكروت الداكنة ===== */
+.booking-card {
+    background-color: #2a2a33; /* داكن */
+    border-top: 4px solid #e9c94e; /* مطابق للألوان الرئيسية */
+    color: #f5f5f5;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.booking-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+.booking-card .info h3,
+.booking-card .info p {
+    color: #f5f5f5;
+}
+
+.booking-card .meta {
+    color: #f5f5f5;
+}
+
+.booking-card .actions a {
+    color: #e9c94e;
+    border-color: #e9c94e;
+}
+
+.booking-card .actions a:hover {
+    background-color: #e9c94e;
+    color: #000;
+}
+
+/* ===== حالة النصوص ===== */
+.weekday {
+    color: #ccc;
+}
+
+/* ===== لا توجد نتائج ===== */
+.no-results {
+    color: #bbb;
+}
+
+/* ===== زر اضافة الحجز ===== */
+.add-booking-btn {
+    background-color: #e9c94e;
+    color: #000;
+}
+
+.add-booking-btn:hover {
+    background-color: #fff;
+    color: #000;
+    border-color: #e9c94e;
+}
+
     </style>
 @endsection

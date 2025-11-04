@@ -18,6 +18,11 @@
         <i class="fa-solid fa-cart-plus"></i>
         <span class="label">بيع منفصل</span>
     </a>
+        <a href="{{ route('invoice.index') }}" class="{{ Request::is('invoices') ? 'active' : '' }}">
+                <i class="fa-solid fa-file-invoice"></i>
+      
+          <span class="label">الفواتير</span>
+    </a>
 
     @if (Auth::user()->role === 'user')
         <a href="{{ route('expense-drafts.index') }}" class="{{ Request::is('expense-drafts') ? 'active' : '' }}">

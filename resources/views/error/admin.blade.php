@@ -4,68 +4,89 @@
 
 @section('content')
     <style>
-        body {
-            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-            font-family: 'Cairo', sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+:root {
+  --bg-color: #0e0e11;
+  --card-bg: #16161a;
+  --accent: #ffb84d;
+  --accent-light: #ffe6a3;
+  --text-main: #f5f5f5;
+  --text-dim: #bfbfbf;
+  --border-light: rgba(255,255,255,0.08);
+}
 
-        .error-box {
-            background: #fff;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-            animation: pop 0.8s ease-out;
-        }
+/* الخلفية */
+body {
+  background: var(--bg-color);
+  font-family: 'Cairo', sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text-main);
+}
 
-        @keyframes pop {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+/* صندوق الخطأ */
+.error-box {
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  border: 1px solid var(--border-light);
+  animation: pop 0.8s ease-out;
+}
 
-        .error-icon {
-            font-size: 80px;
-            color: #e63946;
-            animation: pulse 1.5s infinite;
-        }
+/* حركة الظهور */
+@keyframes pop {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+/* الأيقونة */
+.error-icon {
+  font-size: 80px;
+  color: var(--accent);
+  animation: pulse 1.5s infinite;
+}
 
-        .error-message {
-            margin-top: 20px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-        }
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.75; }
+  100% { transform: scale(1); opacity: 1; }
+}
 
-        .system-note {
-            margin-top: 15px;
-            font-size: 16px;
-            color: #555;
-        }
+/* الرسالة الرئيسية */
+.error-message {
+  margin-top: 20px;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent-light);
+}
 
-        .dev-note {
-            margin-top: 25px;
-            padding: 15px;
-            background: #ffe5e5;
-            color: #c00;
-            border-radius: 10px;
-            font-size: 14px;
-            direction: ltr;
-            text-align: left;
-        }
+/* ملاحظات عامة */
+.system-note {
+  margin-top: 15px;
+  font-size: 16px;
+  color: var(--text-dim);
+}
+
+/* ملاحظات المطور */
+.dev-note {
+  margin-top: 25px;
+  padding: 15px;
+  background: rgba(255, 184, 77, 0.1);
+  color: var(--accent-light);
+  border-radius: 10px;
+  font-size: 14px;
+  direction: ltr;
+  text-align: left;
+  border: 1px solid rgba(255, 184, 77, 0.3);
+}
+
     </style>
 
     <div class="error-box">

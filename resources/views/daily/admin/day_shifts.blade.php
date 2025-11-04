@@ -3,11 +3,10 @@
 
 @section('content')
 
-    <div class="add-expense-wrapper" style="padding-bottom:40px;">
-
+    <div class="page-wrapper">
         <h2 class="page-title">{{ \Carbon\Carbon::parse($date)->format('Y-m-d') }}</h2>
 
-        {{-- Alerts --}}
+        {{-- ✅ إشعارات النجاح --}}
         @if (session('success'))
             <script>
                 Swal.fire({
@@ -17,43 +16,34 @@
                     title: "{{ session('success') }}",
                     showConfirmButton: false,
                     timer: 3500,
-                    timerProgressBar: true,
-                    background: '#fff',
-                    color: '#333',
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    }
+                    background: '#2E2B29',
+                    color: '#fff'
                 });
             </script>
         @endif
 
-        {{-- الملخص الكلي --}}
-        <div class="form-container animate__animated animate__fadeInUp" style="max-width:1100px; margin: 0 auto 20px;">
-            <div style="display:flex; gap:18px; flex-wrap:wrap; justify-content:space-between; align-items:center;">
-                <div style="flex:1; min-width:200px;">
-                    <h4 style="margin:0 0 8px;">💰 الإيراد الكلي</h4>
-                    <div style="font-size:20px; font-weight:700;">{{ number_format($total_income, 2) }} ج.م</div>
-                </div>
-                <div style="flex:1; min-width:200px;">
-                    <h4 style="margin:0 0 8px;">🧾 المصروف الكلي</h4>
-                    <div style="font-size:20px; font-weight:700;">{{ number_format($total_expense, 2) }} ج.م</div>
-                </div>
-                <div style="flex:1; min-width:200px; text-align:right;">
-                    <h4 style="margin:0 0 8px;">🏁 الصافي الكلي</h4>
-                    <div style="font-size:20px; font-weight:700;">{{ number_format($total_net, 2) }} ج.م</div>
-                </div>
+        {{-- ✅ الملخص الكلي --}}
+        <div class="summary-card animate__animated animate__fadeInUp">
+            <div class="summary-item">
+                <h4>💰 الإيراد الكلي</h4>
+                <div>{{ number_format($total_income, 2) }} ج.م</div>
+            </div>
+            <div class="summary-item">
+                <h4>🧾 المصروف الكلي</h4>
+                <div>{{ number_format($total_expense, 2) }} ج.م</div>
+            </div>
+            <div class="summary-item">
+                <h4>🏁 الصافي الكلي</h4>
+                <div>{{ number_format($total_net, 2) }} ج.م</div>
             </div>
         </div>
 
-        {{-- جدول الشيفتات --}}
-        <div class="form-container animate__animated animate__fadeInUp" style="max-width:1100px; margin: 0 auto;">
+        {{-- ✅ جدول الشيفتات --}}
+        <div class="table-card animate__animated animate__fadeInUp">
             @if ($shifts->isEmpty())
-                <div class="alert alert-warning">❌ لا توجد شيفتات في هذا اليوم</div>
+                <div class="no-shifts">❌ لا توجد شيفتات في هذا اليوم</div>
             @else
-                <table class="actions-table" style="width:100%; margin-bottom:0;">
+                <table class="hive-table">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -71,79 +61,42 @@
                         @foreach ($shifts as $shift)
                             @php
                                 $net = $shift->total_amount - $shift->total_expense;
-
-                                // نحصل على الدقائق كعدد صحيح (بدون كسور)
-                                // نفرض أن $shift->duration معطاة بالدقائق (لو عندك بالثواني عدل السطر ليحول الثواني لمجموع دقائق)
+                                $durationText = '—';
                                 if (!empty($shift->duration)) {
-                                    // تحويل إلى عدد دقائق صحيح (نأخذ floor لإلغاء الكسور)
                                     $totalMinutes = (int) floor($shift->duration);
-
-                                    // لو كانت القيمة الفعلية موجبة لكن floor أعاد 0 (مثلاً 0.3 دقيقة) نعرض دقيقة واحدة على الأقل
                                     if ($totalMinutes <= 0 && $shift->duration > 0) {
                                         $totalMinutes = 1;
                                     }
-
                                     if ($totalMinutes < 60) {
                                         $durationText = $totalMinutes . ' دقيقة';
                                     } else {
                                         $hours = intdiv($totalMinutes, 60);
                                         $minutes = $totalMinutes % 60;
-
-                                        $durationText = $hours . ' ساعة';
-                                        if ($minutes > 0) {
-                                            $durationText .= ' ' . $minutes . ' دقيقة';
-                                        }
-                                    }
-                                } else {
-                                    $durationText = '—';
-                                }
-                            @endphp
-                            @php
-                                // تحديد هل المستخدم أدمن
-                                $isAdmin = false;
-                                $userRole = null;
-                                if ($shift->user) {
-                                    // لو فيه method hasRole استخدمها وإلا اعتمد على الحقل role
-                                    if (method_exists($shift->user, 'hasRole')) {
-                                        $isAdmin = $shift->user->hasRole('admin');
-                                        $userRole = $shift->user->role ?? null;
-                                    } else {
-                                        $userRole = $shift->user->role ?? null;
-                                        $isAdmin = $userRole === 'admin';
+                                        $durationText =
+                                            $hours . ' ساعة' . ($minutes > 0 ? ' ' . $minutes . ' دقيقة' : '');
                                     }
                                 }
-                                // إختيار الأيقونة
+                                $isAdmin = $shift->user && ($shift->user->role ?? '') === 'admin';
                                 $badgeEmoji = $isAdmin ? '👑' : '🧳';
-                                $badgeTitle = $isAdmin ? 'إدارة' : 'موظف';
                             @endphp
-
                             <tr>
-                                <td data-label="#"> {{ $shift->id }} </td>
-
-                                {{-- الموظف: نعرض البادج ثم الاسم --}}
-                                <td data-label="الموظف" class="shift-user-cell">
-                                    {{-- البادج (سيُعرض فوق الكارت في الموبايل وبجانبه في الديسكتوب) --}}
+                                <td>{{ $shift->id }}</td>
+                                <td>
                                     @if ($shift->user)
-                                        <span class="shift-badge" title="{{ $badgeTitle }}"
-                                            aria-hidden="false">{{ $badgeEmoji }}</span>
-                                        <span class="shift-user-name">{{ $shift->user->name }}</span>
+                                        <span>{{ $badgeEmoji }}</span> {{ $shift->user->name }}
                                     @else
                                         —
                                     @endif
                                 </td>
-
-                                <td data-label="بداية">{{ \Carbon\Carbon::parse($shift->created_at)->format('Y-m-d H:i') }}
+                                <td>{{ \Carbon\Carbon::parse($shift->created_at)->format('H:i') }}</td>
+                                <td>{{ $shift->updated_at ? \Carbon\Carbon::parse($shift->updated_at)->format('H:i') : '—' }}
                                 </td>
-                                <td data-label="نهاية">
-                                    {{ $shift->updated_at ? \Carbon\Carbon::parse($shift->updated_at)->format('Y-m-d H:i') : '—' }}
-                                </td>
-                                <td data-label="المدة">{{ $durationText }}</td>
-                                <td data-label="الإيراد">{{ number_format($shift->total_amount, 2) }}</td>
-                                <td data-label="المصروف">{{ number_format($shift->total_expense, 2) }}</td>
-                                <td data-label="الصافي">{{ number_format($net, 2) }}</td>
-                                <td data-label="تفاصيل">
-                                    <a href="{{ route('shift.show', $shift->id) }}" class="btn-details"
-                                        style="text-decoration:none;padding:6px 10px;border-radius:8px;background:#D9B1AB;color:#fff;font-weight:700;">عرض</a>
+                                <td>{{ $durationText }}</td>
+                                <td>{{ number_format($shift->total_amount, 2) }}</td>
+                                <td>{{ number_format($shift->total_expense, 2) }}</td>
+                                <td>{{ number_format($net, 2) }}</td>
+                                <td>
+                                    <a href="{{ route('shift.show', $shift->id) }}" class="hive-btn">عرض</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -151,122 +104,129 @@
                 </table>
             @endif
         </div>
-
     </div>
 
-    {{-- Styles (مطابقة الستيل العام والأنيميشن) --}}
+@endsection
+
+@section('style')
     <style>
+        /* 🌑 الخلفية العامة */
         body {
+            background-color: #1B1A19;
             font-family: "Cairo", sans-serif;
-            background: #F2F2F2;
-            margin: 0;
-            padding: 70px;
-            color: #333;
-
+            color: #fff;
+            padding: 40px;
         }
 
-
-        /* نضع ال row بالنسبة النسبية ليعمل badge على الموبايل فوق الكارت */
-        @media (max-width:768px) {
-            tbody tr {
-                position: relative;
-            }
-
-            /* البادج على الموبايل: فوق يمين الكارت (صفحة RTL) */
-            .shift-badge {
-                position: absolute;
-                top: -10px;
-                right: 12px;
-                /* RTL: نعرضها على اليمين */
-                background: #fff;
-                padding: 6px 8px;
-                border-radius: 12px;
-                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-                font-size: 16px;
-                line-height: 1;
-            }
-
-            .shift-user-cell .shift-user-name {
-                display: block;
-                margin-top: 6px;
-                /* لترك مسافة تحت البادج */
-            }
-        }
-
-        /* على الديسكتوب: نجعل البادج inline بجانب الاسم */
-        @media (min-width:769px) {
-            .shift-badge {
-                position: static;
-                display: inline-block;
-                margin-left: 8px;
-                /* عند RTL هذا يضعها قبل الاسم بصريًا */
-                margin-right: 0;
-                background: transparent;
-                padding: 0;
-                box-shadow: none;
-                font-size: 18px;
-                vertical-align: middle;
-            }
-
-            /* نجعل اسم المستخدم يظهر عادي */
-            .shift-user-cell {
-                white-space: nowrap;
-            }
-        }
-
-
+        /* العنوان */
         .page-title {
-            font-size: 28px;
-            margin-bottom: 18px;
-            color: #444;
+            text-align: center;
+            font-size: 26px;
+            color: #F8F5F2;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        /* كروت الملخص */
+        .summary-card {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: #2E2B29;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+            margin-bottom: 25px;
+        }
+
+        .summary-item {
+            flex: 1;
+            min-width: 180px;
             text-align: center;
         }
 
-        .form-container {
-            background: #fff;
-            padding: 25px;
-            border-radius: 18px;
-            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
-            margin-bottom: 20px;
+        .summary-item h4 {
+            margin-bottom: 8px;
+            color: #b9962d;
         }
 
-        .actions-table {
+        .summary-item div {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* الجدول */
+        .table-card {
+            background: #2E2B29;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+        }
+
+        .hive-table {
             width: 100%;
             border-collapse: collapse;
-            text-align: center;
+            color: #fff;
         }
 
-        .actions-table th,
-        .actions-table td {
+        .hive-table th {
+            background: #b9962d;
+            color: #1B1A19;
             padding: 12px;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-
-        .actions-table thead th {
-            background: #f9f9f9;
             font-weight: 700;
-            color: #444;
         }
 
-        .btn-details {
-            transition: transform .15s ease;
+        .hive-table td {
+            padding: 12px;
+            border-bottom: 1px solid #3E3C3A;
         }
 
-        .btn-details:hover {
+        .hive-table tr:hover td {
+            background: #3E3C3A;
+        }
+
+        /* زر العرض */
+        .hive-btn {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: #b9962d;
+            color: #1B1A19;
+            font-weight: 700;
+            transition: all 0.25s ease;
+        }
+
+        .hive-btn:hover {
+            background: #b9962d;
             transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
         }
 
-        /* responsive cards on mobile */
-        @media (max-width:768px) {
+        /* لا توجد بيانات */
+        .no-shifts {
+            text-align: center;
+            color: #aaa;
+            padding: 20px;
+            font-weight: 600;
+        }
 
-            .actions-table,
+        /* موبايل */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+
+            .summary-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hive-table,
             thead,
             tbody,
-            th,
+            tr,
             td,
-            tr {
+            th {
                 display: block;
             }
 
@@ -275,25 +235,24 @@
             }
 
             tbody tr {
-                margin-bottom: 12px;
-                border: 1px solid #eee;
-                border-radius: 8px;
-                padding: 10px;
-                background: #fff;
+                margin-bottom: 10px;
+                border: 1px solid #3E3C3A;
+                border-radius: 10px;
+                padding: 12px;
+                background: #262422;
             }
 
             tbody td {
-                padding: 6px 10px;
+                padding: 8px 10px;
                 position: relative;
-                text-align: right;
             }
 
             tbody td::before {
                 content: attr(data-label);
-                font-weight: 700;
-                color: #666;
+                font-weight: 600;
+                color: #b9962d;
                 position: absolute;
-                left: 10px;
+                right: 10px;
             }
         }
     </style>

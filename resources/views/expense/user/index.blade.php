@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="drafts-wrapper">
-      
+
         <!-- فورم إضافة Draft -->
         <div class="draft-form">
             <h2>✏️ إضافة ملاحظة مصروف (Draft)</h2>
@@ -10,7 +10,7 @@
                 @csrf
                 <div class="form-group">
                     <label>الوصف</label>
-                    <input type="text" name="note" placeholder="مثال: شراء ورق للطابعة..." >
+                    <input type="text" name="note" placeholder="مثال: شراء ورق للطابعة...">
                 </div>
                 <div class="form-group">
                     <label>نوع المصروف</label>
@@ -49,66 +49,73 @@
 
     </div>
 @endsection
+
 @section('style')
     <style>
-        :root{
-            --card-max-width: 980px;
-            --body-padding-desktop: 40px;
-            --body-padding-mobile: 12px;
-            --base-font: "Cairo", sans-serif;
-            --muted: #777;
-            --accent-bg: #fff;
-            --accent-border: #eee;
-            --accent-color: #444;
-            --accent-pill: #D9B1AB; /* حافظين اللون اللى طلبته */
+        :root {
+            --bg-color: #0e0e11;
+            --card-bg: #16161a;
+            --accent: #ffb84d;
+            --accent-light: #ffe6a3;
+            --text-main: #f5f5f5;
+            --text-dim: #bfbfbf;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --radius: 14px;
         }
 
-        html,body{ box-sizing:border-box; }
-        *,*::before,*::after{ box-sizing:inherit; }
+        html,
+        body {
+            box-sizing: border-box;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: inherit;
+        }
 
         body {
-            font-family: var(--base-font);
+            font-family: "Cairo", sans-serif;
             margin: 0;
-            padding: var(--body-padding-desktop);
-            background: #F2F2F2;
-            color: #333;
-            -webkit-font-smoothing:antialiased;
+            padding: 40px;
+            background: var(--bg-color);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ===== Container: شبيه بصفحة الجلسة ===== */
-        .drafts-wrapper{
-            max-width: var(--card-max-width);
+        /* ===== Container ===== */
+        .drafts-wrapper {
+            max-width: 980px;
             margin: 18px auto;
             display: grid;
             gap: 28px;
-            grid-template-columns: 1fr 420px; /* فورم + ليستة جانبية على الديسكتوب */
+            grid-template-columns: 1fr 420px;
         }
 
-        /* لو عايز العمودين يظهروا عموديًا على اللابتوب الصغير ممكن تعدل القيمة أعلاه */
-        @media (max-width: 1024px){
-            .drafts-wrapper{
-                grid-template-columns: 1fr; /* عمود واحد على التابلت والموبايل */
+        @media (max-width: 1024px) {
+            .drafts-wrapper {
+                grid-template-columns: 1fr;
                 padding: 0 12px;
                 gap: 20px;
             }
         }
 
-        /* ===== الكروت / الفورم ===== */
+        /* ===== Cards & Form ===== */
         .draft-form,
         .draft-list {
-            background: var(--accent-bg);
-            padding: 22px; /* أقل من السابق لتقليل الإحساس بالـ "مفرود" */
-            border-radius: 14px;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+            background: var(--card-bg);
+            padding: 22px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
             transition: transform .28s, box-shadow .28s;
-            border: 1px solid var(--accent-border);
+            border: 1px solid var(--border-light);
         }
 
-        /* نخفف الحركة على الموبايل */
-        @media (max-width: 420px){
+        @media (max-width: 420px) {
+
             .draft-form,
             .draft-list {
-                padding: 14px; /* padding أصغر للهواتف */
+                padding: 14px;
                 border-radius: 12px;
             }
         }
@@ -116,126 +123,152 @@
         .draft-form:hover,
         .draft-list:hover {
             transform: translateY(-6px);
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
         }
 
-        h2, h3 {
+        h2,
+        h3 {
             margin: 0 0 14px 0;
-            color: var(--accent-color);
+            color: var(--accent-light);
             font-size: 18px;
         }
 
-        /* ===== الفورم: الحقول ===== */
-        .form-group { margin-bottom: 14px; }
+        /* ===== Inputs ===== */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
         input[type="text"],
         input[type="number"],
         select.styled-select {
             width: 100%;
             padding: 12px 14px;
-            border: 1px solid #e6e6e6;
+            border: 1px solid var(--border-light);
             border-radius: 10px;
             outline: none;
             font-size: 15px;
             transition: box-shadow .2s, transform .15s;
-            background: #fff;
+            background: #1c1c1f;
+            color: var(--text-main);
         }
+
         input[type="text"]:focus,
         input[type="number"]:focus,
         select.styled-select:focus {
-            box-shadow: 0 6px 18px rgba(217,177,171,0.12);
+            box-shadow: 0 0 8px rgba(255, 184, 77, 0.3);
             transform: translateY(-1px);
-            border-color: var(--accent-pill);
+            border-color: var(--accent);
         }
 
-        .btn-submit{
-            background: var(--accent-pill);
-            color: #fff;
+        /* ===== Button ===== */
+        .btn-submit {
+            background: linear-gradient(135deg, var(--accent), #e0a44a);
+            color: #111;
             border: none;
             padding: 12px 16px;
             border-radius: 10px;
             font-weight: 700;
             cursor: pointer;
             width: 100%;
-            box-shadow: 0 6px 18px rgba(217,177,171,0.18);
+            box-shadow: 0 6px 18px rgba(255, 184, 77, 0.25);
             transition: transform .18s, box-shadow .18s;
         }
-        .btn-submit:hover{
+
+        .btn-submit:hover {
             transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(255, 184, 77, 0.35);
         }
 
-        /* ===== ليستة الكروت ===== */
-        .cards{
+        /* ===== Cards ===== */
+        .cards {
             display: grid;
             gap: 12px;
             align-content: start;
         }
 
-        /* Card style — مهم: padding أصغر على الموبايل */
-        .card-content{
-            background: #fff;
-            padding: 14px 16px; /* أقل padding علشان مايبقاش مفرود على الموبايل */
+        .card-content {
+            background: var(--theme-primary, #1a1a1d);
+            padding: 14px 16px;
             border-radius: 12px;
-            border-left: 6px solid var(--accent-pill);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+            border-left: 6px solid var(--accent);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
             transition: transform .2s, box-shadow .2s;
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
 
-        .card-content:hover{
+        .card-content:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
         }
 
-        .card-content h4{
+        .card-content h4 {
             margin: 0;
             font-size: 16px;
             font-weight: 800;
-            color: #333;
+            color: var(--text-main);
         }
 
-        .card-content .amount{
+        .card-content .amount {
             margin: 0;
             font-size: 14px;
             font-weight: 700;
-            color: #28a745;
+            color: #6fff92;
         }
 
-        .card-content .type{
+        .card-content .type {
             margin: 0;
             font-size: 13px;
-            color: #D9B1AB;
+            color: var(--accent);
             font-weight: 700;
         }
 
-        .card-content .date{
+        .card-content .date {
             margin-top: 6px;
             font-size: 13px;
-            color: #888;
+            color: var(--text-dim);
         }
 
         .empty {
-            color: #999;
+            color: var(--text-dim);
             font-style: italic;
             text-align: center;
             padding: 18px;
         }
 
-        /* ===== سمارت adjustments للـ mobile: الكارت يملى العرض ويحافظ على راحة الحقول ===== */
-        @media (max-width: 420px){
-            .drafts-wrapper { padding: 0 10px; }
-            .card-content { padding: 12px; border-radius: 10px; }
-            .cards { gap: 10px; }
-            .btn-submit { padding: 10px; }
-            h2, h3 { font-size: 16px; }
+        @media (max-width: 420px) {
+            .drafts-wrapper {
+                padding: 0 10px;
+            }
+
+            .card-content {
+                padding: 12px;
+                border-radius: 10px;
+            }
+
+            .cards {
+                gap: 10px;
+            }
+
+            .btn-submit {
+                padding: 10px;
+            }
+
+            h2,
+            h3 {
+                font-size: 16px;
+            }
         }
 
-        /* ===== Accessibility / touch targets ===== */
-        .btn-submit, input[type="text"], input[type="number"], .styled-select { min-height: 44px; }
+        .btn-submit,
+        input[type="text"],
+        input[type="number"],
+        .styled-select {
+            min-height: 44px;
+        }
 
-        /* ==== Optional: if you want the draft-list to be sticky on wide screens (nice UX) ==== */
-        @media (min-width: 1100px){
+        @media (min-width: 1100px) {
             .draft-list {
                 position: sticky;
                 top: 28px;

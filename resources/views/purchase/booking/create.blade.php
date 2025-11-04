@@ -653,141 +653,205 @@
 
 @section('style')
     <style>
+        /* 🌙 Dark Theme Consistent with Layout */
+        :root {
+            --bg-color: #0e0e11;
+            --card-bg: #16161a;
+            --accent: #ffb84d;
+            --accent-light: #ffe6a3;
+            --text-main: #f5f5f5;
+            --text-dim: #bfbfbf;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --theme-primary: #1a1a1d;
+            --btn-bg: #ffb84d;
+            --btn-border: #f2d35e;
+            --btn-text: #111;
+        }
+
+        /* الصفحة */
         body {
             margin: 0;
             font-family: "Cairo", sans-serif;
-            background: #ffffff;
+            background: var(--bg-color);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--text-main);
         }
 
+        /* الكونتينر */
         .sale-container {
-            background: #ffffff;
+            background: var(--card-bg);
             padding: 30px;
             border-radius: 20px;
             max-width: 600px;
             width: 100%;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
             animation: fadeIn 0.8s ease;
+            border: 1px solid var(--border-light);
         }
 
-        .addItemButton {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #d9b2ad;
-            color: #000;
-            font-size: 28px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        #product-results .list-group-item.text-muted {
+            color: #fff !important;
         }
 
-        .addItemButton:hover {
-            background: #e6c3be;
-            transform: scale(1.1) rotate(10deg);
+        #itemsListContainer .list-group-item.text-muted {
+            color: #fff !important;
         }
 
-        .counter-box {
-            background: #fff;
+        /* البحث */
+        #product {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+            background: #1c1c21;
+            color: var(--text-main);
+            transition: 0.3s;
+        }
+
+        #product:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            outline: none;
+        }
+
+        /* نتائج البحث */
+        #product-results {
+            background: var(--theme-primary);
             border-radius: 10px;
-            padding: 3px 8px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light);
         }
 
-        .counter-btn {
-            background: #D9B1AB;
+        #product-results .list-group-item {
+            background: transparent;
+            color: var(--text-dim);
             border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            font-size: 16px;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.3s;
+            transition: 0.25s;
         }
 
-        /* تمييز العنصر المختار عند التنقل بالأسهم */
+        #product-results .list-group-item:hover,
+        #product-results .list-group-item.active {
+            background: rgba(255, 184, 77, 0.1);
+            color: var(--accent-light);
+        }
+
+        /* المنتجات */
+        .card {
+            background: var(--theme-primary) !important;
+            color: var(--text-main);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .list-group-item {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border-light);
+        }
+
         #itemsListContainer .selected-item {
-            background: rgba(217, 177, 173, 0.14);
-            border-color: rgba(196, 140, 133, 0.3);
-            outline: none;
+            background: rgba(255, 184, 77, 0.1);
+            border-color: var(--accent);
         }
 
-        /* outline عند الفوكس (عند استخدام .focus()) */
         #itemsListContainer li:focus {
-            box-shadow: 0 0 0 3px rgba(217, 177, 173, 0.20);
+            box-shadow: 0 0 0 3px rgba(255, 184, 77, 0.25);
             outline: none;
         }
 
-        /* فلاش بسيط لو حاول المستخدم يقلل عن 1 */
         #itemsListContainer .min-reached {
             animation: flashMin 0.28s ease;
         }
 
         @keyframes flashMin {
             0% {
-                transform: scale(1);
-                background-color: rgba(244, 67, 54, 0.06);
+                background-color: rgba(244, 67, 54, 0.08);
             }
 
             50% {
-                transform: scale(0.995);
-                background-color: rgba(244, 67, 54, 0.12);
+                background-color: rgba(244, 67, 54, 0.15);
             }
 
             100% {
-                transform: scale(1);
                 background-color: transparent;
             }
         }
 
+        /* الأزرار */
+        .counter-btn {
+            background: var(--accent);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+            color: var(--btn-text);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
         .counter-btn:hover {
-            background: #c48c85;
+            background: var(--accent-light);
             transform: scale(1.1);
         }
 
         .remove-btn {
-            background: #f44336;
+            background: #e74c3c;
+            color: #fff;
         }
 
         .remove-btn:hover {
-            background: #d32f2f;
+            background: #ff5f50;
         }
 
-
+        /* زرار إضافة الفاتورة */
         .invoice-btn {
-            background: linear-gradient(135deg, #D9B1AB, #c48c85);
+            background: linear-gradient(135deg, var(--accent), #d4a043);
             border: none;
             border-radius: 30px;
             padding: 12px 22px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-            color: #fff;
+            color: var(--btn-text);
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 184, 77, 0.3);
+            margin: auto;
             opacity: 0;
             transform: translateY(20px);
             animation: fadeSlideIn 0.6s ease forwards;
-            margin: auto;
         }
 
         .invoice-btn:hover {
-            background: #d9b1ad;
             transform: scale(1.08);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 20px rgba(255, 184, 77, 0.4);
         }
 
+        /* الرسائل */
+        .alert {
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .alert-success {
+            background: rgba(76, 175, 80, 0.15);
+            color: #9cff9c;
+        }
+
+        .alert-danger {
+            background: rgba(244, 67, 54, 0.15);
+            color: #ff9c9c;
+        }
+
+        /* انيمشن */
         @keyframes fadeSlideIn {
             to {
                 opacity: 1;
@@ -805,6 +869,58 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* ✅ 1. خلي placeholder أبيض */
+        #product::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+            opacity: 1;
+            /* للتوافق مع كل المتصفحات */
+        }
+
+        /* ✅ 2. نتائج البحث بلون أبيض بدل الرمادي */
+        #product-results .list-group-item {
+            background: var(--theme-primary);
+            color: var(--text-main);
+            /* أبيض */
+            border: none;
+            transition: 0.25s;
+        }
+
+        #product-results .list-group-item:hover,
+        #product-results .list-group-item.active {
+            background: rgba(255, 184, 77, 0.2);
+            color: var(--accent-light);
+        }
+
+        /* ✅ 3. الكارت اللي فيه لستة المشتريات يكون دارك بنفس الثيم */
+        .card {
+            background: #1a1a1d !important;
+            /* أغمق شوية من الخلفية */
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            color: var(--text-main);
+        }
+
+        /* ✅ 4. عناصر المشتريات نفسها بنفس شكل الثيم */
+        #itemsListContainer .list-group-item {
+            background: #1e1e22;
+            color: var(--text-main);
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        #itemsListContainer .list-group-item:hover {
+            background: rgba(255, 184, 77, 0.1);
+            transform: scale(1.02);
+        }
+
+        /* ✅ 5. العنصر المختار يظهر مميز */
+        #itemsListContainer .selected-item {
+            background: rgba(255, 184, 77, 0.15);
+            border-color: var(--accent);
         }
     </style>
 @endsection

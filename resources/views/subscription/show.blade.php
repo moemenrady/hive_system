@@ -38,16 +38,16 @@
                     <p><strong>الاسم:</strong> {{ $client->name }}</p>
                     <p><strong>الموبايل:</strong> {{ $client->phone }}</p>
                     <p><strong>عدد مرات التجديد:</strong> {{ $subscription->renewal_count }}</p>
-                  <a href="{{ route('clients.edit', $client->id) }}" class="btn edit-btn" title="تعديل بيانات العميل">
-                    <span class="edit-ico" aria-hidden="true">✏️</span>
-                    <span class="edit-txt">تعديل</span>
-                </a>
+                    <a href="{{ route('clients.edit', $client->id) }}" class="btn edit-btn" title="تعديل بيانات العميل">
+                        <span class="edit-ico" aria-hidden="true">✏️</span>
+                        <span class="edit-txt">تعديل</span>
+                    </a>
                 </div>
             </div>
             @if (!$subscription->is_active)
                 <form action="{{ route('subscriptions.renew', $subscription->id) }}" method="POST" style="display:inline;">
                     @csrf
-                    <button type="submit" class="btn btn-success">🔄 تجديد الاشتراك</button>
+                    <button type="submit" class="btn-gold">🔄 تجديد الاشتراك</button>
                 </form>
             @endif
             <div class="space"></div>
@@ -312,138 +312,184 @@
     </script>
 
     @include('subscription.modal.renew_sub')
+
 @endsection
-<!-- استايل -->
 @section('style')
-
-
     <style>
+        /* 🎨 Dark + Gold System Theme */
+
         body {
-            background: #fafafa;
-            font-family: "Tahoma", sans-serif;
+            background: #0e0e11;
+            color: #ffffff;
+            font-family: "Cairo", sans-serif;
+            direction: rtl;
         }
 
-        .space {
-            height: 30px;
-        }
-
+        /* ====== Container & Card ====== */
         .subscription-container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 40px auto;
-            padding: 20px;
+            padding: 25px;
         }
 
         .card {
-            background: #fff;
+            background: #1b1b21;
             border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
             padding: 30px;
             animation: fadeInUp 0.6s ease;
         }
 
-
+        /* ====== Header ====== */
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #f1f1f1;
+            border-bottom: 1px solid #2e2e36;
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
 
         .card-header h2 {
             font-size: 26px;
-            color: #2b2b2b;
-            margin: 0;
+            font-weight: bold;
+            color: #ffe483;
+            /* ذهب */
         }
 
         .badge {
-            background: #D9B1AB;
-            color: #fff;
+            background: #ffe483;
+            color: #1b1b21;
             padding: 6px 15px;
-            border-radius: 30px;
+            border-radius: 25px;
             font-weight: bold;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(255, 228, 131, 0.3);
         }
 
+        .subscription-container .card {
+            background: #1a1a1d !important;
+            /* لون داكن */
+            color: #ffffff !important;
+            /* الكتابة بيضاء */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+        }
+
+
+        /* ====== Sections ====== */
         .section h3 {
-            color: #a86f68;
+            color: #ffe483;
             font-size: 20px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .box {
-            background: #fafafa;
-            padding: 15px 20px;
-            border-radius: 12px;
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+            background: #22222a;
+            border-radius: 15px;
+            padding: 18px 22px;
             margin-bottom: 25px;
-            font-size: 16px;
-            line-height: 1.7;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
         }
 
+        .box p {
+            margin: 10px 0;
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .box strong {
+            color: #ffe483;
+            /* ذهبي لعناوين التفاصيل */
+            font-weight: 600;
+        }
+
+        /* ====== Colors ====== */
         .price {
             font-weight: bold;
             font-size: 18px;
-            color: #2b2b2b;
+            color: #ffe483;
         }
 
         .remaining {
             font-weight: bold;
             font-size: 22px;
-            color: #008000;
+            color: #28a745;
+            /* أخضر */
         }
 
-        /* Progress Bar */
+        .used {
+            font-weight: bold;
+            font-size: 22px;
+            color: #ff5c5c;
+            /* أحمر للاستهلاك */
+            transition: transform 0.25s ease, color 0.25s ease;
+        }
+
+        .used.updated {
+            transform: scale(1.1);
+        }
+
+        /* ====== Progress Bar ====== */
         .progress-section {
             margin: 25px 0;
         }
 
         .progress-bar {
-            background: #eaeaea;
+            background: #2a2a32;
             border-radius: 12px;
             height: 20px;
             overflow: hidden;
-            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
         }
 
         .progress-fill {
-            background: linear-gradient(90deg, #D9B1AB, #a86f68);
+            background: linear-gradient(90deg, #ffe483, #e0b100);
             height: 100%;
             width: 0;
             border-radius: 12px;
             transition: width 0.6s ease-in-out;
         }
 
-        .form-btn {
-            text-align: center;
-            margin-top: 20px;
-        }
 
+        /* ====== Buttons ====== */
         .btn {
-            background: #D9B1AB;
-            color: #fff;
-            padding: 12px 30px;
+            background: #ffe483;
+            color: #1b1b21;
+            padding: 12px 28px;
             border: none;
             border-radius: 12px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: 0.3s;
+            font-size: 17px;
             font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
         .btn:hover {
-            background: #a86f68;
-            transform: scale(1.05);
+            background: #f2ce56;
+            transform: translateY(-2px);
         }
 
-        /* Snackbar style */
+        .btn.edit-btn {
+            background: transparent;
+            color: #ffe483;
+            border: 1px solid #ffe483;
+            font-size: 15px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn.edit-btn:hover {
+            background: #ffe483;
+            color: #1b1b21;
+        }
+
+        /* ====== Snackbar ====== */
         .snackbar {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #333;
+            background: #1f1f25;
             color: #fff;
             padding: 12px 18px;
             border-radius: 10px;
@@ -452,16 +498,12 @@
             opacity: 0;
             transform: translateX(120%);
             transition: opacity 0.4s ease, transform 0.4s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
-
 
         .snackbar.show {
             opacity: 1;
             transform: translateX(0);
-            /* 👈 تتحرك للداخل */
         }
 
         .snackbar.success {
@@ -472,25 +514,7 @@
             background: #dc3545;
         }
 
-        /* أيقونة صغيرة */
-        .snackbar i {
-            font-size: 16px;
-        }
-
-        .used {
-            font-weight: bold;
-            font-size: 22px;
-            color: #c40000;
-            /* أحمر قوي */
-            transition: transform 0.25s ease, color 0.25s ease;
-        }
-
-        /* تأثير بسيط عند التحديث */
-        .used.updated {
-            transform: scale(1.12);
-        }
-
-
+        /* ====== Animation ====== */
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -501,6 +525,64 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        /* ====== زر خصم الزيارة ====== */
+        #decrease-btn {
+            background: linear-gradient(135deg, #e6b800, #b8860b);
+            /* جولد محروق متدرج */
+            color: #1b1b21;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 34px;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            box-shadow: 0 0 20px rgba(230, 184, 0, 0.3);
+        }
+
+        #decrease-btn:hover {
+            background: linear-gradient(135deg, #ffd700, #ffae00);
+            color: #000;
+            transform: scale(1.07) translateY(-2px);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+
+        #decrease-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
+
+        /* زر تجديد الاشتراك (جولد محروق بدون شادو وبتأثير هوفر رايق) */
+        .btn-gold {
+            background: linear-gradient(135deg, #b8860b, #d4af37);
+            /* جولد محروق */
+            color: #1b1b21;
+            /* غامق شوية */
+            border: none;
+            border-radius: 12px;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: none !important;
+            /* من غير أي ظل */
+        }
+
+        .btn-gold:hover {
+            background: linear-gradient(135deg, #e6c200, #ffde5a);
+            /* هوفر أفتح */
+            color: #000;
+            /* يخلي الكلام واضح */
+            transform: translateY(-2px) scale(1.03);
+        }
+
+        .btn-gold:active {
+            transform: scale(0.98);
+            filter: brightness(0.95);
         }
     </style>
 @endsection

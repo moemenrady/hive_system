@@ -1,3 +1,5 @@
+
+
 @extends('layouts.app_page')
 
 @section('title', 'بدء عملية بيع')
@@ -41,6 +43,7 @@
     </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
 (function($) {
     const sel = {
@@ -562,151 +565,211 @@ $(document).on('submit', sel.invoiceForm, function(e) {
 
 
 @endsection
-
 @section('style')
-    <style>
-        body {
-            margin: 0;
-            font-family: "Cairo", sans-serif;
-            background: #ffffff;
-            /* 👈 أبيض صريح */
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+<style>
+  :root {
+    --bg-color: #1e1e1e;
+    --card-bg: #2b2b2b;
+    --accent: #d4af37; /* ذهبى محروق */
+    --accent-hover: #f1c232;
+    --text-main: #ffffff;
+    --text-muted: #ffffff;
+    --border-light: rgba(255, 255, 255, 0.08);
+}
 
-        .sale-container {
-            background: #ffffff;
-            /* 👈 أبيض صريح */
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 0.8s ease;
-        }
+body {
+    margin: 0;
+    font-family: "Cairo", sans-serif;
+    background: var(--bg-color);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+}
 
+.sale-container {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.8s ease;
+    border: 1px solid var(--border-light);
+}
 
-        .addItemButton {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #d9b2ad;
-            color: #000;
-            font-size: 28px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        }
+#product {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    background: #1e1e1e;
+    color: var(--text-main);
+    transition: 0.3s;
+}
 
-        .addItemButton:hover {
-            background: #e6c3be;
-            transform: scale(1.1) rotate(10deg);
-        }
+#product::placeholder {
+    color: #999;
+    font-weight: 600;
+}
 
-        .counter-box {
-            background: #fff;
-            border-radius: 10px;
-            padding: 3px 8px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+#product:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
+    outline: none;
+}
 
-        #product.focus-flash {
-            box-shadow: 0 0 0 4px rgba(217, 177, 173, 0.35);
-            transition: box-shadow 0.25s ease;
-        }
+#product-results {
+    background: #2b2b2b;
+    border-radius: 10px;
+    border: 1px solid var(--border-light);
+}
 
-        .counter-btn {
-            background: #D9B1AB;
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            font-size: 16px;
-            color: #fff;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+#product-results .list-group-item {
+    background: transparent;
+    color: var(--text-main);
+    border: none;
+    transition: 0.25s;
+}
 
-        .counter-btn:hover {
-            background: #c48c85;
-            transform: scale(1.1);
-        }
+#product-results .list-group-item:hover,
+#product-results .list-group-item.active {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--accent);
+}
 
-/* تمييز العنصر المختار عند التنقل بالأسهم */
+.card {
+    background: var(--card-bg) !important;
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    color: var(--text-main);
+}
+
+#itemsListContainer .list-group-item {
+    background: #2b2b2b;
+    color: var(--text-main);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+#itemsListContainer .list-group-item:hover {
+    background: rgba(212, 175, 55, 0.08);
+    transform: scale(1.02);
+}
+
 #itemsListContainer .selected-item {
-  background: rgba(217,177,173,0.14);
-  border-color: rgba(196,140,133,0.3);
-  outline: none;
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--accent);
+}
+.text-muted {
+    color: #ffffff !important;
 }
 
-/* outline عند الفوكس (عند استخدام .focus()) */
-#itemsListContainer li:focus {
-  box-shadow: 0 0 0 3px rgba(217,177,173,0.20);
-  outline: none;
+.counter-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    color: #1e1e1e;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-/* فلاش بسيط لو حاول المستخدم يقلل عن 1 */
+.counter-btn:hover {
+    background: var(--accent-hover);
+    transform: scale(1.1);
+}
+
+.remove-btn {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.remove-btn:hover {
+    background: #ff5f50;
+}
+
+.invoice-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    border: none;
+    border-radius: 30px;
+    padding: 12px 22px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #1e1e1e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    margin: auto;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeSlideIn 0.6s ease forwards;
+}
+
+.invoice-btn:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.alert {
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.alert-success {
+    background: rgba(40, 167, 69, 0.12);
+    color: #28a745;
+}
+
+.alert-danger {
+    background: rgba(244, 67, 54, 0.12);
+    color: #ff6b6b;
+}
+
+@keyframes fadeSlideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 #itemsListContainer .min-reached {
-  animation: flashMin 0.28s ease;
+    animation: flashMin 0.28s ease;
 }
+
+
+
 @keyframes flashMin {
-  0% { transform: scale(1); background-color: rgba(244, 67, 54, 0.06); }
-  50% { transform: scale(0.995); background-color: rgba(244, 67, 54, 0.12); }
-  100% { transform: scale(1); background-color: transparent; }
+    0% { background-color: rgba(244, 67, 54, 0.06); }
+    50% { background-color: rgba(244, 67, 54, 0.12); }
+    100% { background-color: transparent; }
 }
-        .invoice-btn {
-            background: linear-gradient(135deg, #D9B1AB, #c48c85);
-            border: none;
-            border-radius: 30px;
-            padding: 12px 22px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeSlideIn 0.6s ease forwards;
-        }
+.list-group-item.text-muted {
+    color: #ffffff !important;
+    background-color: transparent !important;
+}
 
-        .invoice-btn:hover {
-            background: #d9b1ad;
-            transform: scale(1.08);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .invoice-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-        }
-
-        @keyframes fadeSlideIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+</style>
 @endsection

@@ -12,7 +12,7 @@ Route::middleware('auth')->group(function () {
   Route::post('/start_session', [SationController::class, 'store'])->name("session.store")->middleware("auth");
   Route::post('/start_session', [SationController::class, 'storeFromManager'])->name("session.store.manager")->middleware("auth");
 
-  Route::get('/sessions', [SationController::class, 'index'])->name('session.index-manager')->middleware("auth");
+  Route::get('/sessions', [SationController::class, 'indexManager'])->name('session.index-manager')->middleware("auth");
 Route::put('/sessions/{session}/reduce-minutes', [SationController::class, 'reduceMinutes'])
     ->name('sessions.reduceMinutes');
 

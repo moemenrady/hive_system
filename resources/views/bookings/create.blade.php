@@ -1353,7 +1353,8 @@
                 }
             }); // ready
         })(jQuery);
-    </script>  <script>
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // عنصر التقويم موجود؟ لو لا: ما يعملش حاجة
             const calendar = document.getElementById('calendar');
@@ -1369,7 +1370,8 @@
                 try {
                     if (typeof safeCalcDurationAndTrigger === 'function') safeCalcDurationAndTrigger();
                 } catch (e) {
-                    /* ignore */ }
+                    /* ignore */
+                }
             }
 
             // دالة تساعد على عمل scroll سلس وانتظار محتوى
@@ -1473,288 +1475,215 @@
         });
     </script>
 @endsection
-
 @section('style')
-    <style>
-        body {
-            background: #fff;
-        }
+  <style>
+    /* 🎨 الثيم الأساسي */
+    :root {
+        --bg-dark: #1e1e1e;
+        --card-dark: #2b2b2b;
+        --input-dark: #3a3a3a;
+        --border-dark: #555;
+        --gold: #d4af37;
+        --gold-hover: #b9962d;
+        --text-light: #ffffff;
+        --text-muted: #ccc;
+    }
 
-        .theme-btn {
-            background-color: #D9B1AB;
-            color: #fff;
-            border: none;
-            transition: all 0.3s ease;
-        }
+    body {
+        background: var(--bg-dark);
+        color: var(--text-light);
+        font-family: "Cairo", sans-serif;
+    }
 
-        /* شوية ستايل صغير لاسم اليوم تحت التاريخ */
-        #calendar .weekday-name {
-            font-size: 0.75rem;
-            color: #6c757d;
-            /* bootstrap text-muted */
-            margin-top: 4px;
-            display: block;
-        }
+    /* 🧱 البطاقات */
+    .card {
+        background: var(--card-dark);
+        border: 1px solid var(--border-dark);
+        border-radius: 16px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-        /* إبراز اليوم الحالي */
-        #calendar td.today {
-            background: #fff8dc;
-            border-radius: 6px;
-        }
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+    }
 
-        /* نقط الحجز تبقى صف */
-        .booking-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin: 0 2px;
-        }
+    /* 🧾 الحقول */
+    .form-control,
+    .form-select,
+    textarea {
+        background: var(--input-dark);
+        border: 1px solid var(--border-dark);
+        color: var(--text-light);
+        border-radius: 10px;
+        padding: 10px 12px;
+        transition: 0.3s ease;
+    }
 
-        .theme-btn:hover {
-            background-color: #c0958f;
-            transform: scale(1.05);
-        }
+    .form-control::placeholder,
+    textarea::placeholder {
+        color: var(--text-muted);
+    }
 
-        .form-control,
-        .form-select,
-        textarea {
-            border-radius: 8px;
-            padding: 10px 12px;
-        }
+    .form-control:focus,
+    .form-select:focus,
+    textarea:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+        background: #444;
+        color: #fff;
+        outline: none;
+    }
 
-        .card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+    label,
+    label.form-label {
+        color: var(--text-light);
+        font-weight: 600;
+    }
 
-        .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-        }
+    .text-muted {
+        color: var(--text-muted) !important;
+    }
 
-        /* أنيميشن */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
+    /* 🌕 الزر الذهبي */
+    .theme-btn {
+        background-color: var(--gold);
+        color: #1e1e1e;
+        border: none;
+        border-radius: 12px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        padding: 10px 18px;
+    }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .theme-btn:hover {
+        background-color: var(--gold-hover);
+        color: #fff;
+        transform: scale(1.05);
+    }
 
-        .animate__fadeInUp {
-            animation: fadeInUp 0.6s ease-in-out;
-        }
+    /* 🧭 أزرار الكالندر */
+    #prev-month,
+    #next-month {
+        background: var(--gold);
+        color: #1e1e1e;
+        border: none;
+        border-radius: 10px;
+        transition: 0.3s ease;
+    }
 
-        .animate__fadeIn {
-            animation: fadeInUp 0.8s ease-in-out;
-        }
+    #prev-month:hover,
+    #next-month:hover {
+        background: var(--gold-hover);
+        color: #fff;
+        transform: scale(1.05);
+    }
 
-        .animate__fadeInRight {
-            animation: fadeInUp 0.9s ease-in-out;
-        }
+    /* 🗓️ الكالندر */
+    #calendar {
+        background: var(--card-dark);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+    }
 
-        #prev-month,
-        #next-month {
-            min-width: 56px;
-            min-height: 44px;
-            padding: 10px 14px;
-            font-size: 20px;
-            border-radius: 10px;
-        }
+    #calendar table {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--text-light);
+    }
 
-        /* مسافة بين الأزرار والعنوان */
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
+    #calendar td {
+        min-width: 80px;
+        height: 90px;
+        border-radius: 10px;
+        background: var(--input-dark);
+        padding: 6px;
+        border: 1px solid var(--border-dark);
+        transition: all 0.3s ease;
+        text-align: center;
+        vertical-align: top;
+    }
 
-        /* يسمح للكالندر بالتقاط الحركات الأفقية دون منع التمرير العمودي */
-        #calendar {
-            touch-action: pan-y;
-            -webkit-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
+    #calendar td:hover {
+        background: rgba(212, 175, 55, 0.15);
+        transform: scale(1.04);
+        cursor: pointer;
+    }
 
+    #calendar td strong {
+        color: var(--text-light);
+        font-weight: 600;
+    }
 
-        /* التقويم */
-        #calendar table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    #calendar td.today {
+        background: var(--gold);
+        color: #1e1e1e;
+        font-weight: bold;
+    }
 
+    .weekday-name {
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        display: block;
+        margin-top: 4px;
+    }
+
+    .booking-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--gold);
+        margin: 2px;
+        display: inline-block;
+        box-shadow: 0 0 3px rgba(212, 175, 55, 0.7);
+    }
+
+    /* 💰 estimate banner */
+    .estimate-banner {
+        background: rgba(212, 175, 55, 0.15);
+        border: 1px solid var(--gold);
+        border-radius: 12px;
+        padding: 10px 16px;
+        color: var(--text-light);
+    }
+
+    .estimate-inner {
+        background: var(--gold);
+        color: #1e1e1e;
+        border-radius: 10px;
+        padding: 8px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: bold;
+    }
+
+    /* ✍️ الملاحظات */
+    textarea.form-control {
+        background: var(--input-dark);
+        color: var(--text-light);
+        border: 1px solid var(--border-dark);
+    }
+
+    /* 🕒 أنيميشن */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate__fadeInUp {
+        animation: fadeInUp 0.6s ease-in-out;
+    }
+
+    /* 📱 موبايل */
+    @media (max-width: 768px) {
         #calendar td {
-            min-width: 80px;
-            height: 90px;
-            vertical-align: top;
-            border-radius: 10px;
-            background: #fafafa;
-            padding: 6px;
-            position: relative;
-            transition: all 0.3s ease;
+            min-width: 45px;
+            height: 65px;
         }
+    }
+</style>
 
-        #calendar td:hover {
-            background: #f1e2df;
-            transform: scale(1.03);
-            cursor: pointer;
-        }
-
-        #calendar td strong {
-            display: inline-block;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #333;
-        }
-
-
-        /* اليوم الحالي */
-        #calendar td.today {
-            background: #D9B1AB;
-            color: #fff;
-            font-weight: bold;
-        }
-
-        /* دوائر البوكنج */
-        .booking-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin: 0 2px;
-            border: 1px solid #fff;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
-        }
-
-        /* صفوف الجدول */
-        #calendar tr {
-            height: 100px;
-        }
-
-        /* تصغير في الموبايل */
-        @media (max-width: 768px) {
-            #calendar td {
-                min-width: 40px;
-                height: 60px;
-                padding: 4px;
-            }
-
-            #calendar td strong {
-                font-size: 12px;
-            }
-        }
-
-        /* Estimate banner styling */
-        .estimate-banner {
-            position: fixed;
-            left: 50%;
-            transform: translateX(-50%) translateY(-10px);
-            top: 16px;
-            z-index: 1200;
-            width: min(860px, calc(100% - 32px));
-            max-width: 980px;
-            box-sizing: border-box;
-            transition: transform .28s cubic-bezier(.2, .9, .2, 1), opacity .28s ease;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .estimate-inner {
-            background: #D9B1AB;
-            /* theme */
-            color: #fff;
-            border-radius: 12px;
-            padding: 10px 16px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .estimate-left {
-            font-size: 14px;
-            opacity: 0.95;
-        }
-
-        .estimate-amount {
-            font-size: 18px;
-            font-weight: 900;
-        }
-
-        .estimate-small {
-            font-size: 13px;
-            opacity: 0.9;
-        }
-
-        /* show/hide animations */
-        .estimate-show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-            pointer-events: auto;
-        }
-
-        .estimate-hide {
-            opacity: 0;
-            transform: translateX(-50%) translateY(-12px);
-            pointer-events: none;
-        }
-
-        /* responsive tweaks */
-        @media (max-width:420px) {
-            .estimate-inner {
-                padding: 10px;
-                font-size: 14px;
-                gap: 8px;
-            }
-
-            .estimate-amount {
-                font-size: 16px;
-            }
-
-            .estimate-banner {
-                top: 10px;
-                width: calc(100% - 20px);
-            }
-        }
-
-        /* تأثير تمييز مؤقت على كروت الحجز بعد الانتقال */
-        .__scroll-highlight {
-            animation: __flash 1s ease-in-out 0s 2;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-            border-radius: 6px;
-            transition: transform .12s;
-        }
-
-        @keyframes __flash {
-            0% {
-                transform: translateY(0);
-                background-color: transparent;
-            }
-
-            30% {
-                transform: translateY(-4px);
-                background-color: #fff7cc;
-            }
-
-            100% {
-                transform: translateY(0);
-                background-color: transparent;
-            }
-        }
-
-        /* لو عايز تمييز للصندوق كله بدل الكروت */
-        .__scroll-highlight-container {
-            animation: __flash 1s ease-in-out 0s 2;
-        }
-    </style>
 @endsection

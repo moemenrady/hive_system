@@ -126,7 +126,7 @@
         <div class="logo">
           <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKV4y9snY_3mPxdOqtcAngk1wiaw_qc0HkCQ&s" alt="logo" style="width:100%;height:100%;object-fit:cover;">
         </div>
-        <h1>Analytics • X Space</h1>
+        <h1>Analytics • Hive</h1>
       </div>
 
       <div style="display:flex;align-items:center;gap:12px">
@@ -214,7 +214,7 @@
     </div> {{-- end main-body --}}
 
     <footer style="padding:18px; text-align:center; color:var(--muted); border-top:1px solid rgba(11,11,12,0.03)">
-      © {{ date('Y') }} X Space — Analytics. Performance tips: cache (30-300s), pre-agg job, queue heavy jobs.
+      © {{ date('Y') }} Hive — Analytics. Performance tips: cache (30-300s), pre-agg job, queue heavy jobs.
     </footer>
 
   </div>

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إيصال X Space</title>
+    <title>إيصال Hive</title>
     <style>
         @page {
             size: 80mm auto; /* رول 80mm */
@@ -68,7 +68,7 @@
 </head>
 <body>
     <div class="header">
-        <h2>X Space</h2>
+        <h2>Hive</h2>
         <p>مكانك المثالي للعمل والإبداع 💡</p>
         <p>استمتع بكل لحظة هنا!</p>
     </div>
@@ -99,7 +99,7 @@
     </div>
 
     <div class="footer">
-        شكرًا لزيارتك X Space 💼<br>
+        شكرًا لزيارتك Hive 💼<br>
         نتطلع لرؤيتك مرة أخرى!
     </div>
 
