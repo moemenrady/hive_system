@@ -7,19 +7,23 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\SystemActionController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request; 
+use Illuminate\Http\Request;
 
 
 
 
 
 Route::middleware('auth')->group(function () {
-    Route::get('clients/next-id', [ClientController::class, 'nextId'])
+
+  Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
+
+
+  Route::get('clients/next-id', [ClientController::class, 'nextId'])
     ->name('clients.next_id');
- Route::get('/api/system-actions', [ApiSystemActionController::class, 'index'])
-        ->name('system-actions.web.index')->middleware("admin");
-         Route::get('/system-actions', [SystemActionController::class, 'index'])
-        ->name('system-actions.index')->middleware("admin");
+  Route::get('/api/system-actions', [ApiSystemActionController::class, 'index'])
+    ->name('system-actions.web.index')->middleware("admin");
+  Route::get('/system-actions', [SystemActionController::class, 'index'])
+    ->name('system-actions.index')->middleware("admin");
 
   Route::post('/products/{id}/add-quantity', [
     ProductController::class,
@@ -35,7 +39,7 @@ Route::middleware('auth')->group(function () {
   Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
   Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-  
+
 });
 
 Route::get('/error', function (Request $request) {
@@ -44,8 +48,8 @@ Route::get('/error', function (Request $request) {
 })->name('error.create');
 
 Route::get('/error-system-data', function (Request $request) {
-    $error = session('message', 'حدث خطأ غير متوقع'); // يجلب الرسالة من الـ session
-    return view('error.admin', compact('error'));
+  $error = session('message', 'حدث خطأ غير متوقع'); // يجلب الرسالة من الـ session
+  return view('error.admin', compact('error'));
 })->name('admin-error.create');
 
 require __DIR__ . '/auth.php';

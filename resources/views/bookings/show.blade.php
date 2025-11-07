@@ -157,8 +157,9 @@
                 <h3>💰 الحساب</h3>
                 <div class="box">
                     <p><strong>إجمالي متوقع:</strong>
-                        <span class="price" style="color:green;">{{ number_format($booking->estimated_total, 2) }}
-                            جنيه</span>
+                        <span class="price" style="color:green;">
+                            {{ number_format($booking->estimated_total, 2) }} جنيه
+                        </span>
                     </p>
 
                     <p><strong>سعر الساعة:</strong> {{ number_format($bookingHourPrice, 2) }} جنيه</p>
@@ -185,25 +186,39 @@
                         @endif
                     </p>
 
+                    @php
+                        // ✅ هنا المنطق الجديد للتعامل مع المقدم
+                        $remaining_to_show = ($remaining ?? 0) < 0 ? 0 : $remaining ?? 0;
+                    @endphp
+
                     <p><strong>المتبقي للدفع:</strong>
-                        {{ number_format($remaining ?? 0, 2) }} جنيه
+                        <span class="price" style="color:{{ $remaining_to_show == 0 ? '#999' : '#ffd700' }}">
+                            {{ number_format($remaining_to_show, 2) }} جنيه
+                        </span>
+
                         @if (!empty($remaining_label ?? null))
-                            <span style="color:#777; font-style:italic; margin-left:8px;">{{ $remaining_label }}</span>
+                            <span style="color:#777; font-style:italic; margin-left:8px;">
+                                {{ $remaining_label }}
+                            </span>
                         @endif
                     </p>
                 </div>
             </div>
+
 
             <!-- المشتريات -->
             <div class="section">
                 <h3>🛒 المشتريات</h3>
                 <div class="box selected-products">
                     @forelse ($purchases as $purchase)
-                        <p>{{ $purchase->product->name }} × {{ $purchase->quantity }}</p>
+                        <p data-product-id="{{ $purchase->product_id }}">
+                            {{ $purchase->product->name }} × {{ $purchase->quantity }}
+                        </p>
                     @empty
                         <p>لا يوجد مشتريات</p>
                     @endforelse
                 </div>
+
 
                 @if ($booking->status === 'in_progress')
                     <div class="products-list">
@@ -233,19 +248,15 @@
                     </form>
                 @elseif($booking->status === 'in_progress')
                     <a href="{{ route('booking.purchases.create', $booking->id) }}" class="btn">➕ إضافة مشتريات</a>
-
                     <form id="checkoutForm" action="{{ route('booking.checkout', $booking->id) }}" method="POST"
-                        style="display:inline;">
-                        @csrf
+                        style="display:inline;"> @csrf
+                        <input type="hidden" name="purchases" id="purchases_json">
                         <input type="hidden" name="booking" value="{{ $booking->id }}">
-                        <input type="hidden" name="hours_total" id="hours_total"
-                            value="{{ number_format($hours_total ?? 0, 2, '.', '') }}">
+                        <input type="hidden" name="hours_total" id="hours_total" value="{{ $hours_total ?? 0 }}">
                         <input type="hidden" name="purchases_total" id="purchases_total"
-                            value="{{ number_format($purchases_total ?? 0, 2, '.', '') }}">
-                        <input type="hidden" name="deposit_paid" id="deposit_paid"
-                            value="{{ number_format($deposit_paid ?? 0, 2, '.', '') }}">
-                        <input type="hidden" name="hourly_rate" id="hourly_rate"
-                            value="{{ number_format($bookingHourPrice ?? 0, 2, '.', '') }}">
+                            value="{{ $purchases_total ?? 0 }}">
+                        <input type="hidden" name="deposit_paid" id="deposit_paid" value="{{ $deposit_paid ?? 0 }}">
+                        <input type="hidden" name="hourly_rate" id="hourly_rate" value="{{ $bookingHourPrice ?? 0 }}">
                         <button type="submit" class="btn btn-danger">إنهاء الحساب</button>
                     </form>
                 @elseif($booking->status === 'finished')
@@ -291,6 +302,34 @@
             // deposit_paid يأتي من السيرفر كقيمة افتراضية، لا حاجة لتغييره هنا
         });
     </script>
+    <script>
+        document.getElementById('checkoutForm')?.addEventListener('submit', function(e) {
+            // اجمع كل صفوف المشتريات
+            const purchaseRows = document.querySelectorAll('.selected-products p');
+            const purchases = [];
+
+            purchaseRows.forEach(row => {
+                // نقرأ اسم المنتج والعدد من النص مثلاً: "بيبسي × 2"
+                const text = row.textContent.trim();
+                if (!text.includes('×')) return;
+
+                const [namePart, qtyPart] = text.split('×').map(x => x.trim());
+                const qty = parseFloat(qtyPart) || 1;
+
+                // نحاول نجيب الـ id من data attribute لو متاح (لو مش متاح، الكنترولر يقدر يعتمد على الاسم)
+                const productId = row.dataset.productId ? parseInt(row.dataset.productId) : null;
+
+                purchases.push({
+                    product_id: productId,
+                    qty: qty
+                });
+            });
+
+            // خزّن فقط id و qty كـ JSON
+            document.getElementById('purchases_json').value = JSON.stringify(purchases);
+        });
+    </script>
+
 @endsection
 
 @section('style')

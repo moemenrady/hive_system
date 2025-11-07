@@ -220,7 +220,8 @@
                             <input type="hidden" name="start_at_full" id="start_at_full">
                             <input type="hidden" name="end_at_full" id="end_at_full">
 
-                            <button type="submit" class="btn theme-btn w-100 py-2 fw-bold">💾 إضافة الحجز</button>
+                        <button type="submit" class="btn-submit">💾 إضافة الحجز</button>
+
                         </form>
                     </div>
                 </div>
@@ -721,47 +722,46 @@
 
     <script>
         $(document).ready(function() {
-            console.log("jQuery جاهز والشيفرة تعمل"); // <-- هذا سيتأكد أن DOM جاهز و jQuery شغالة
+            console.log("jQuery جاهز والشيفرة تعمل"); 
 
-            $('#client_search').on('keyup', function() {
-                let query = $(this).val();
-                console.log("تم كتابة شيء في البحث:", query); // <-- تحقق من الحدث
+          $('#client_search').on('keyup', function() {
+    let query = $(this).val();
+    console.log("تم كتابة شيء في البحث:", query);
 
-                if (query.length >= 1) {
-                    $.ajax({
-                        url: "{{ route('clients.search') }}",
-                        type: "GET",
-                        data: {
-                            query: query
-                        },
-                        success: function(data) {
-                            console.log("جاءت البيانات من السيرفر:", data); // <-- تحقق من الرد
-                            let html = '';
-                            if (data.length > 0) {
-                                data.forEach(item => {
-                                    html += `
-                                <div class="result-item p-2 border-bottom"
-                                     data-id="${item.id}"
-                                     data-name="${item.name}"
-                                     data-phone="${item.phone}">
-                                  ${item.name} - ${item.phone}
-                                </div>`;
-                                });
-                            } else {
-                                html = '<div class="p-2 text-muted">لا توجد نتائج</div>';
-                            }
-
-                            $('#client-results').html(html).show();
-                        },
-                        error: function(err) {
-                            console.error("خطأ في جلب البيانات:",
-                                err); // <-- لو فيه مشكلة في AJAX
-                        }
+    if (query.length >= 1) {
+        $.ajax({
+            url: "{{ route('clients.search') }}",
+            type: "GET",
+            data: { query: query },
+            success: function(data) {
+                console.log("جاءت البيانات من السيرفر:", data);
+                let html = '';
+                if (data.length > 0) {
+                    data.forEach(item => {
+                        html += `
+                            <div class="result-item"
+                                 data-id="${item.id}"
+                                 data-name="${item.name}"
+                                 data-phone="${item.phone}">
+                                <span class="name">${item.name} - ${item.phone}</span>
+                                <span class="id">#${item.id}</span>
+                            </div>`;
                     });
                 } else {
-                    $('#client-results').hide();
+                    html = '<div class="no-results">لا توجد نتائج</div>';
                 }
-            });
+
+                $('#client-results').html(html).show();
+            },
+            error: function(err) {
+                console.error("خطأ في جلب البيانات:", err);
+            }
+        });
+    } else {
+        $('#client-results').hide();
+    }
+});
+
             $(document).on('click', '.result-item', function() {
                 $('#client_id').val($(this).data('id'));
                 $('#client_name').val($(this).data('name'));
@@ -1509,42 +1509,63 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
     }
 
-    /* 🧾 الحقول */
-    .form-control,
-    .form-select,
-    textarea {
-        background: var(--input-dark);
-        border: 1px solid var(--border-dark);
-        color: var(--text-light);
-        border-radius: 10px;
-        padding: 10px 12px;
-        transition: 0.3s ease;
-    }
+  /* 🧾 الحقول */
+.form-control,
+.form-select,
+textarea {
+    background: var(--input-dark);
+    border: 1px solid var(--border-dark);
+    color: #fff !important; /* النص الأساسي أبيض */
+    border-radius: 10px;
+    padding: 10px 12px;
+    transition: 0.3s ease;
+}
 
-    .form-control::placeholder,
-    textarea::placeholder {
-        color: var(--text-muted);
-    }
+/* اللون الفاتح للهنت (placeholder) */
+.form-control::placeholder,
+textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important; /* أبيض خافت */
+}
 
-    .form-control:focus,
-    .form-select:focus,
-    textarea:focus {
-        border-color: var(--gold);
-        box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
-        background: #444;
-        color: #fff;
-        outline: none;
-    }
+/* عند التركيز */
+.form-control:focus,
+.form-select:focus,
+textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+    background: #444; /* دارك فاتح شوي عشان يبان الفرق */
+    color: #fff;
+    outline: none;
+}
 
-    label,
-    label.form-label {
-        color: var(--text-light);
-        font-weight: 600;
-    }
+/* ✍️ الملاحظات */
+textarea.form-control {
+    background: var(--input-dark);
+    color: #fff !important;
+    border: 1px solid var(--border-dark);
+}
 
-    .text-muted {
-        color: var(--text-muted) !important;
-    }
+/* اللابل فوق الحقول */
+label,
+label.form-label {
+    color: #fff;
+    font-weight: 600;
+}
+
+
+.text-muted,
+small.text-muted {
+    color: #fff !important; /* أبيض صريح */
+    opacity: 0.9; /* ممكن تقللها لـ 0.8 لو عايزه أفتح سنة */
+}
+
+input,
+select,
+textarea {
+    color: #fff !important;
+    background-color: var(--input-dark) !important;
+}
+
 
     /* 🌕 الزر الذهبي */
     .theme-btn {
@@ -1622,6 +1643,9 @@
         color: #1e1e1e;
         font-weight: bold;
     }
+#day-bookings-content {
+    color: #fff !important; /* أبيض صريح */
+}
 
     .weekday-name {
         color: var(--text-muted);
@@ -1660,12 +1684,6 @@
         font-weight: bold;
     }
 
-    /* ✍️ الملاحظات */
-    textarea.form-control {
-        background: var(--input-dark);
-        color: var(--text-light);
-        border: 1px solid var(--border-dark);
-    }
 
     /* 🕒 أنيميشن */
     @keyframes fadeInUp {
@@ -1684,6 +1702,24 @@
             height: 65px;
         }
     }
+    .btn-submit {
+    background: linear-gradient(135deg, #FFD700, #c48c85);
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    color: #1c1c1c;
+    font-weight: bold;
+    font-size: 16px;
+    width: 100%;
+    cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+
+.btn-submit:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255,215,0,0.5);
+}
+
 </style>
 
 @endsection

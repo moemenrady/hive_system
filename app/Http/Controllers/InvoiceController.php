@@ -60,92 +60,76 @@ public function admin_show(Invoice $invoice)
   }
 
 
-  public function client_show(Invoice $invoice)
-  {
-    // تحميل العلاقات المطلوبة
+public function client_show(Invoice $invoice)
+{
     $invoice->load([
-      'client',
-      'items',
-      'booking' => function ($query) {
-        $query->with([
-          'hall', // تحميل قاعة الحجز أو أي علاقة مرتبطة
-        ]);
-      },
+        'client',
+        'items',
+        'booking' => function ($query) {
+            $query->with(['hall']);
+        },
     ]);
 
-    // ترتيب البنود حسب النوع
     $groupedItems = [
-      'product' => $invoice->items->where('item_type', 'product'),
-      'subscription' => $invoice->items->where('item_type', 'subscription'),
-      'booking' => $invoice->items->where('item_type', 'booking'),
-      'session' => $invoice->items->where('item_type', 'session'),
-      'deposit' => $invoice->items->where('item_type', 'deposit'),
+        'product' => $invoice->items->where('item_type', 'product'),
+        'subscription' => $invoice->items->where('item_type', 'subscription'),
+        'booking' => $invoice->items->where('item_type', 'booking'),
+        'session' => $invoice->items->where('item_type', 'session'),
+        'deposit' => $invoice->items->where('item_type', 'deposit'),
     ];
 
-    // حساب الإجمالي الكلي
-    $totalAmount = $invoice->items->sum('total');
+    // ✅ أي فاتورة فيها منتجات تظهر مشترياتها
+    $purchaseItems = collect();
+    if ($groupedItems['product']->isNotEmpty()) {
+        $purchaseItems = $groupedItems['product'];
+    }
 
-    // نوع الفاتورة
+    $totalAmount = $invoice->items->sum('total');
     $invoiceType = $invoice->type;
 
-    // بيانات إضافية لو نوعها deposit
     $extraData = [];
     if ($invoiceType === 'deposit') {
-      $extraData = [
-        'client_name' => $invoice->client->name ?? 'غير معروف',
-        'booking_date' => optional($invoice->booking)->date ?? '-',
-      ];
+        $extraData = [
+            'client_name' => $invoice->client->name ?? 'غير معروف',
+            'booking_date' => optional($invoice->booking)->date ?? '-',
+        ];
     }
 
-    // التحقق من وجود مشتريات داخل فاتورة جلسة أو حجز
-    $isHasPurchase = false;
-    if (
-      in_array($invoiceType, ['booking', 'session']) &&
-      $invoice->items->where('item_type', 'product')->isNotEmpty()
-    ) {
-      $isHasPurchase = true;
-    }
-
-    // بيانات الحجز لو نوع الفاتورة booking
     $bookingData = null;
     $hourlyRate = null;
     $actualDurationMinutes = null;
     if ($invoiceType === 'booking' && $invoice->booking) {
-      
-      $bookingData = $invoice->booking;
+        $bookingData = $invoice->booking;
 
-      // التأكد إن القيم موجودة قبل الحساب
-      if (!empty($bookingData->duration_minutes) && !empty($bookingData->estimated_total)) {
-        $hours = $bookingData->duration_minutes / 60;
-        if ($hours > 0) {
-          $hourlyRate = $bookingData->estimated_total / $hours;
+        if (!empty($bookingData->duration_minutes) && !empty($bookingData->estimated_total)) {
+            $hours = $bookingData->duration_minutes / 60;
+            if ($hours > 0) {
+                $hourlyRate = $bookingData->estimated_total / $hours;
+            }
         }
-      }
-      // حساب المدة الفعلية بالدقائق من real_start_at و real_end_at
-      if (!empty($bookingData->real_start_at) && !empty($bookingData->real_end_at)) {
-        $start = Carbon::parse($bookingData->real_start_at);
-        $end = Carbon::parse($bookingData->real_end_at);
 
-        $secondsDiff = abs($end->diffInSeconds($start, false));
-        $actualDurationMinutes = (int) round($secondsDiff / 60);
-      }
-
-
+        if (!empty($bookingData->real_start_at) && !empty($bookingData->real_end_at)) {
+            $start = \Carbon\Carbon::parse($bookingData->real_start_at);
+            $end = \Carbon\Carbon::parse($bookingData->real_end_at);
+            $secondsDiff = abs($end->diffInSeconds($start, false));
+            $actualDurationMinutes = (int) round($secondsDiff / 60);
+        }
     }
 
-    // تمرير كل البيانات إلى الواجهة
     return view('invoices.client_show', [
-      'invoice' => $invoice,
-      'groupedItems' => $groupedItems,
-      'totalAmount' => $totalAmount,
-      'invoiceType' => $invoiceType,
-      'extraData' => $extraData,
-      'isHasPurchase' => $isHasPurchase,
-      'bookingData' => $bookingData,
-      'hourlyRate' => $hourlyRate,
-      'actualDurationMinutes' => $actualDurationMinutes, // المدة الفعلية بالدقائق
+        'invoice' => $invoice,
+        'groupedItems' => $groupedItems,
+        'totalAmount' => $totalAmount,
+        'invoiceType' => $invoiceType,
+        'extraData' => $extraData,
+        'bookingData' => $bookingData,
+        'hourlyRate' => $hourlyRate,
+        'actualDurationMinutes' => $actualDurationMinutes,
+        'purchaseItems' => $purchaseItems,
     ]);
-  }
+}
+
+
 
 
   public function ajaxSearch(Request $request)

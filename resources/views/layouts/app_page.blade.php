@@ -123,6 +123,12 @@ a.btn:hover {
     box-shadow: 0 4px 14px rgba(255, 184, 77, 0.3);
     transform: scale(1.05);
 }
+/* 📱 إخفاء navbar على الموبايل */
+@media (max-width: 768px) {
+  .navbar-custom {
+    display: none !important;
+  }
+}
 
 
 
@@ -313,7 +319,69 @@ a.btn:hover {
         .private-box {
             border-top: 4px solid #7b61ff;
         }
+
+  #client-results {
+      background: #1e1e1e !important; /* خلفية داكنة */
+      color: #fff !important;
+      border: 1px solid #555 !important;
+      border-radius: 10px;
+      margin-top: 5px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+      overflow-y: auto;
+      max-height: 250px;
+      position: absolute;
+      width: 100%;
+      z-index: 9999;
+  }
+
+  #client-results .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+  }
+
+  #client-results .result-item span.name {
+      color: #fff !important;
+      font-weight: 500;
+  }
+
+  #client-results .result-item span.id {
+      color: #d4af37 !important; /* ذهبي محروق */
+      font-weight: bold;
+  }
+
+  #client-results .result-item:hover {
+      background: rgba(212, 175, 55, 0.15);
+      transform: scale(1.02);
+  }
+
+  #client-results .no-results {
+      padding: 10px;
+      color: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      font-style: italic;
+  }
+
+  /* 📱 ريسبونسيف */
+  @media (max-width: 768px) {
+      #client-results {
+          max-height: 180px;
+          font-size: 0.9rem;
+      }
+      #client-results .result-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+      }
+  }
+
+
+
     </style>
+    
 
 
 

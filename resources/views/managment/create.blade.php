@@ -16,7 +16,7 @@
             <div class="col-12">
                 <form action="{{ route('managment-system-edit.create') }}" method="GET">
                     <button type="submit" class="custom-card">
-                      تعديلات في النظام
+                      DashBoard
                     </button>
                 </form>
             </div>

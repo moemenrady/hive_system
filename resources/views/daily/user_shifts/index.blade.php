@@ -2,18 +2,26 @@
 @section('title', '📊 شيفتاتي اليومية')
 
 <style>
+    /* 🌑 الخلفية العامة */
     body {
         font-family: "Tahoma", sans-serif;
-        background: linear-gradient(to bottom, #fff, #f0f9ff);
+        background: #0e0e0f;
         margin: 0;
         padding: 0;
-        color: #333;
+        color: #f5f5f5;
     }
 
     .container {
         max-width: 1200px;
         margin: 0 auto;
         padding: 30px 20px;
+    }
+
+    h1 {
+        color: #ffcc70;
+        font-weight: bold;
+        text-shadow: 0 0 8px rgba(255, 204, 112, 0.4);
+        letter-spacing: 1px;
     }
 
     /* ✅ فلتر التاريخ */
@@ -25,24 +33,41 @@
         flex-wrap: wrap;
     }
 
+    .filters-box label {
+        color: #ffcc70;
+        font-weight: bold;
+        margin-right: 5px;
+    }
+
     .filters-box input {
         padding: 10px 15px;
         border-radius: 8px;
-        border: 1px solid #ccc;
+        border: 1px solid #444;
+        background: #1b1b1d;
+        color: #fff;
         font-size: 15px;
+        transition: 0.2s;
     }
 
+    .filters-box input:focus {
+        outline: none;
+        border-color: #ffcc70;
+        box-shadow: 0 0 6px #ffcc70a8;
+    }
+
+    /* ✅ جدول الشيفتات */
     table {
         width: 100%;
         border-collapse: collapse;
-        background: transparent;
+        background: #151515;
         border-radius: 12px;
         overflow: hidden;
         margin-top: 20px;
+        box-shadow: 0 0 15px rgba(255, 204, 112, 0.05);
     }
 
     thead {
-        background: rgba(255, 201, 125, 0.4);
+        background: linear-gradient(90deg, #ffcc70 0%, #e6b85c 100%);
     }
 
     thead th {
@@ -50,26 +75,39 @@
         text-align: center;
         font-size: 14px;
         font-weight: bold;
-        color: #444;
+        color: #121212;
     }
 
     tbody tr {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #222;
         text-align: center;
-        transition: background 0.2s;
+        transition: background 0.2s, transform 0.2s;
     }
 
     tbody tr:hover {
-        background: rgba(240, 248, 255, 0.6);
+        background: #1e1e21;
+        transform: scale(1.01);
     }
 
     tbody td {
         padding: 12px 14px;
         font-size: 14px;
-        color: #333;
+        color: #f5f5f5;
     }
 
-    /* ✅ موبايل -> كروت */
+    tbody td:nth-child(1),
+    tbody td:nth-child(4),
+    tbody td:nth-child(7) {
+        color: #ffcc70;
+        font-weight: bold;
+    }
+
+    /* ✅ كارت لا توجد نتائج */
+    td[colspan="7"] {
+        color: #ccc;
+    }
+
+    /* ✅ موبايل */
     @media (max-width: 768px) {
 
         table,
@@ -87,10 +125,10 @@
 
         tbody tr {
             margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: 1px solid #222;
+            border-radius: 10px;
             padding: 12px;
-            background: #fff;
+            background: #151515;
             text-align: right;
         }
 
@@ -103,7 +141,7 @@
         tbody td::before {
             content: attr(data-label);
             font-weight: bold;
-            color: #666;
+            color: #ffcc70;
             position: absolute;
             left: 10px;
         }
@@ -112,9 +150,7 @@
 
 @section('content')
     <div class="container">
-        <h1 class="mb-4 text-center">📊 شيفتاتي اليومية</h1>
 
-        {{-- ✅ فلتر التاريخ --}}
         <div class="filters-box">
             <div>
                 <label>من:</label>
@@ -131,8 +167,8 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>بداية </th>
-                    <th>نهاية </th>
+                    <th>بداية</th>
+                    <th>نهاية</th>
                     <th>المدة</th>
                     <th>الإيرادات</th>
                     <th>المصروفات</th>
@@ -164,7 +200,9 @@
                         </td>
                         <td data-label="الإيرادات">{{ number_format($shift->total_amount, 2) }}</td>
                         <td data-label="المصروفات">{{ number_format($shift->total_expense, 2) }}</td>
-                        <td data-label="الصافي">{{ number_format($shift->total_amount - $shift->total_expense, 2) }}</td>
+                        <td data-label="الصافي" style="color:#ffcc70;">
+                            {{ number_format($shift->total_amount - $shift->total_expense, 2) }}
+                        </td>
                     </tr>
                 @empty
                     <tr>
@@ -210,7 +248,7 @@
     <td data-label="المدة">${s.duration}</td>
     <td data-label="الإيرادات">${s.total_amount}</td>
     <td data-label="المصروفات">${s.total_expense}</td>
-    <td data-label="الصافي">${s.net_profit}</td>
+    <td data-label="الصافي" style="color:#ffcc70;">${s.net_profit}</td>
 </tr>`;
                             });
                         }

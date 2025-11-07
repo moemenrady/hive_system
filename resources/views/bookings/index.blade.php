@@ -4,267 +4,105 @@
 
 @section('content')
     <style>
-        /* زر الإضافة (لمعة) */
-        #addButton {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            background: #ffb84d;
-            font-size: 48px;
-            font-weight: 600;
-            color: #1a1a1a;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
-            transition: transform .28s ease, box-shadow .28s ease, background .28s;
-            margin: 20px auto;
-            position: relative;
-            overflow: hidden;
-        }
+      /* نفس شكل الكروت والجدول في النسخة الفاتحة لكن بالألوان الداكنة الحالية */
 
-        #addButton::before {
-            content: "";
-            position: absolute;
-            inset: -120% -30%;
-            background: linear-gradient(120deg, transparent 35%, rgba(255, 255, 255, .35) 50%, transparent 65%);
-            transform: translateX(-100%);
-            transition: transform .6s ease;
-            pointer-events: none;
-        }
-
-        #addButton:hover {
-            transform: translateY(-4px) scale(1.03);
-            background: #ffd97a;
-            box-shadow: 0 14px 30px rgba(0, 0, 0, .45);
-        }
-
-        #addButton:hover::before {
-            transform: translateX(100%);
-        }
-
-        /* البحث */
-        .search-box {
-            margin: 20px auto;
-            text-align: center;
-        }
-
-        .search-box input {
-            padding: 14px 20px;
-            width: 450px;
-            max-width: 100%;
-            border-radius: 25px;
-            border: 1px solid #555;
-            font-size: 15px;
-            outline: none;
-            background: #1c1c1f;
-            color: #f5f5f5;
-            transition: box-shadow .22s ease, border-color .22s;
-        }
-
-        .search-box input:focus {
-            border-color: #ffb84d;
-            box-shadow: 0 0 8px rgba(255, 184, 77, 0.28);
-        }
-
-        /* filters */
-        .filters-box {
-            display: flex;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 18px;
-            align-items: center;
-        }
-
-        /* checkboxes */
-        .form-check-lg .form-check-input {
-            width: 1.4em;
-            height: 1.4em;
-            margin-top: .1em;
-        }
-.filters-box label.form-label {
-    color: #ffffff !important;
+/* زر الإضافة */
+#addButton {
+  width:100px; height:100px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  text-decoration:none; background:#ffb84d; font-size:48px;font-weight:600;
+  color:#1a1a1a; box-shadow:0 6px 18px rgba(0,0,0,.3);
+  transition: transform .28s ease, box-shadow .28s ease, background .28s;
+  margin:20px auto;
+  position: relative; overflow: hidden;
 }
-        .form-check-lg .form-check-label {
-            font-size: 1em;
-            margin-right: .4em;
-            color: #f5f5f5;
-        }
+#addButton::before {
+  content:""; position:absolute; inset:-120% -30%;
+  background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%);
+  transform: translateX(-100%); transition: transform .6s ease;
+  pointer-events:none;
+}
+#addButton:hover { transform: translateY(-4px) scale(1.03); background:#ffd97a; box-shadow:0 14px 30px rgba(0,0,0,.45); }
+#addButton:hover::before { transform: translateX(100%); }
 
-        /* الجدول */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-top: 12px;
-            background: #1a1a1d;
-            color: #f5f5f5;
-        }
+/* البحث */
+.search-box { margin:20px auto; text-align:center; }
+.search-box input {
+  padding:14px 20px; width:450px; max-width:100%; border-radius:25px;
+  border:1px solid #555; font-size:15px; outline:none;
+  background:#1c1c1f; color:#f5f5f5;
+  transition: box-shadow .22s ease, border-color .22s;
+}
+.search-box input:focus {
+  border-color:#ffb84d; box-shadow:0 0 8px rgba(255,184,77,0.28);
+}
 
-        thead {
-            background: #333;
-        }
+/* filters */
+.filters-box { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:20px; margin-bottom:18px; align-items:center; }
+.filters-box label.form-label { color:#fff !important; }
 
-        thead th {
-            padding: 14px 12px;
-            text-align: center;
-            color: #ffd97a;
-            font-size: 15px;
-        }
+/* checkboxes */
+.form-check-lg .form-check-input { width:1.4em; height:1.4em; margin-top:.1em; }
+.form-check-lg .form-check-label { font-size:1em; margin-right:.4em; color:#f5f5f5; }
 
-        tbody {
-            background: transparent;
-        }
+/* الجدول */
+table { width:100%; border-collapse:collapse; border-radius:12px; overflow:hidden; margin-top:12px; background:#1a1a1d; color:#f5f5f5; }
+thead { background:#2a2a2e; }
+thead th { padding:14px 12px; text-align:center; color:#ffb84d;font-size:15px; }
+tbody { background: transparent; }
+tbody tr {
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  text-align:center;
+  transition: background .18s ease, transform .18s ease;
+  background:#1c1c1f;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+tbody td { padding:12px 10px; text-align:center; color:#f5f5f5; }
 
-        tbody tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-            transition: background .18s ease, transform .18s ease;
-            background: #1c1c1f;
-        }
+tbody tr:hover {
+  transform: translateY(-3px);
+  background: rgba(255,184,77,0.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  cursor:pointer;
+}
 
-        tbody td {
-            padding: 12px 10px;
-            text-align: center;
-            color: #f5f5f5;
-        }
+/* badge */
+.badge { padding:6px 10px; border-radius:10px; display:inline-block; font-size:13px;font-weight:600; }
+.badge.scheduled { background:rgba(255,184,77,0.15); color:#ffb84d; }
+.badge.due { background:rgba(255,84,0,0.15); color:#ff844d; }
+.badge.in_progress { background:rgba(0,184,123,0.15); color:#0bd97f; }
+.badge.finished { background:rgba(100,120,255,0.15); color:#a0bfff; }
+.badge.cancelled { background:rgba(200,80,120,0.15); color:#ff7aa0; }
 
-        tbody tr:hover {
-            transform: translateY(-3px);
-            background: rgba(255, 184, 77, 0.08);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-            cursor: pointer;
-        }
+/* كروت موبايل */
+@media (max-width:768px) {
+  table, thead, tbody, th, td, tr { display:block; width:100%; }
+  thead { display:none; }
+  tbody tr {
+    margin-bottom:15px; border:1px solid #333; border-radius:10px;
+    padding:12px; background:#1c1c1f;
+    box-shadow:0 6px 18px rgba(0,0,0,0.3);
+    transform:none; animation: cardIn .28s ease both;
+  }
+  tbody td { text-align:right; padding:8px 10px; position:relative; font-size:14px; }
+  tbody td::before { content: attr(data-label); position:absolute; left:12px; color:#aaa; font-weight:600; }
+}
 
-        /* badge styles */
-        .badge {
-            padding: 6px 10px;
-            border-radius: 10px;
-            display: inline-block;
-            font-size: 13px;
-            font-weight: 600;
-        }
+/* animation */
+@keyframes fadeUp { from{opacity:0; transform: translateY(8px);} to{opacity:1; transform: translateY(0);} }
+@keyframes cardIn { from{opacity:0; transform: translateY(8px);} to{opacity:1; transform: translateY(0);} }
+.row-animate { animation: fadeUp .32s ease both; }
 
-        .badge.scheduled {
-            background: rgba(255, 184, 77, 0.15);
-            color: #ffb84d;
-        }
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  #addButton, #addButton::before, .row-animate { transition:none; animation:none; transform:none !important; }
+}
 
-        .badge.due {
-            background: rgba(255, 84, 0, 0.15);
-            color: #ff844d;
-        }
+/* spacing */
+.container h1 { margin-bottom:8px; }
+.no-results { text-align:center; color:#999; padding:18px 0; }
 
-        .badge.in_progress {
-            background: rgba(0, 184, 123, 0.15);
-            color: #0bd97f;
-        }
-
-        .badge.finished {
-            background: rgba(100, 120, 255, 0.15);
-            color: #a0bfff;
-        }
-
-        .badge.cancelled {
-            background: rgba(200, 80, 120, 0.15);
-            color: #ff7aa0;
-        }
-
-        /* small screen table -> card style */
-        @media (max-width:768px) {
-
-            table,
-            thead,
-            tbody,
-            th,
-            td,
-            tr {
-                display: block;
-                width: 100%;
-            }
-
-            thead {
-                display: none;
-            }
-
-            tbody tr {
-                margin-bottom: 15px;
-                border: 1px solid #333;
-                border-radius: 10px;
-                padding: 12px;
-                background: #1c1c1f;
-                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-                transform: none;
-                animation: cardIn .28s ease both;
-            }
-
-            tbody td {
-                text-align: right;
-                padding: 8px 10px;
-                position: relative;
-                font-size: 14px;
-            }
-
-            tbody td::before {
-                content: attr(data-label);
-                position: absolute;
-                left: auto;
-                color: #aaa;
-                font-weight: 600;
-            }
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes cardIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .row-animate {
-            animation: fadeUp .32s ease both;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-
-            #addButton,
-            #addButton::before,
-            .row-animate {
-                transition: none;
-                animation: none;
-                transform: none !important;
-            }
-        }
-
-        .container h1 {
-            margin-bottom: 8px;
-        }
-
-        .no-results {
-            text-align: center;
-            color: #999;
-            padding: 18px 0;
-        }
     </style>
 
     <div class="container">

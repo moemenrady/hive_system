@@ -7,37 +7,44 @@
 
     <title>@yield('page_title')</title>
     <style>
-      :root {
-    /* 🎨 الألوان الأساسية */
-    --bg: #F7F6F5;               /* خلفية الصفحة */
-    --card-bg: #FFFFFF;          /* خلفية الكروت والمودالات */
-    --accent: #D9B1AB;           /* اللون المميز الأساسي */
-    --accent-hover: #C89C96;     /* لون أغمق شوية عند الهوفر */
-    --text: #2F2F2F;             /* لون النصوص الرئيسي */
-    --muted: #777;               /* نصوص خافتة */
-    --border: #E6E3E2;           /* حدود خفيفة */
+        :root {
+            /* 🎨 الألوان الأساسية */
+            --bg: #F7F6F5;
+            /* خلفية الصفحة */
+            --card-bg: #FFFFFF;
+            /* خلفية الكروت والمودالات */
+            --accent: #D9B1AB;
+            /* اللون المميز الأساسي */
+            --accent-hover: #C89C96;
+            /* لون أغمق شوية عند الهوفر */
+            --text: #2F2F2F;
+            /* لون النصوص الرئيسي */
+            --muted: #777;
+            /* نصوص خافتة */
+            --border: #E6E3E2;
+            /* حدود خفيفة */
 
-    /* ✨ مؤثرات وظلال */
-    --shadow-sm: 0 3px 8px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
-    --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.1);
+            /* ✨ مؤثرات وظلال */
+            --shadow-sm: 0 3px 8px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 28px rgba(0, 0, 0, 0.1);
 
-    /* 🟢 الحواف والتفاصيل */
-    --radius: 14px;
-    --radius-sm: 10px;
-    --transition: all 0.2s ease;
+            /* 🟢 الحواف والتفاصيل */
+            --radius: 14px;
+            --radius-sm: 10px;
+            --transition: all 0.2s ease;
 
-    /* 🔘 ألوان الحالة */
-    --success: #6FCF97;
-    --warning: #F2C94C;
-    --danger: #EB5757;
+            /* 🔘 ألوان الحالة */
+            --success: #6FCF97;
+            --warning: #F2C94C;
+            --danger: #EB5757;
 
-    /* 🧭 ألوان الأزرار */
-    --btn-green: #27ae60;
-    --btn-green-hover: #219150;
-    --btn-purple: #9b59b6;
-    --btn-purple-hover: #8e44ad;
-}
+            /* 🧭 ألوان الأزرار */
+            --btn-green: #27ae60;
+            --btn-green-hover: #219150;
+            --btn-purple: #9b59b6;
+            --btn-purple-hover: #8e44ad;
+        }
 
         /* 🧭 drawer profile */
         .drawer {
@@ -244,34 +251,38 @@
         .snackbar i {
             font-size: 16px;
         }
+
         /* 🎨 شكل Hive Style للدراور */
-.drawer {
-    background: #121212; 
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    border: 1px solid rgba(255,255,255,0.08);
-}
+        .drawer {
+            background: #121212;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 18px;
+            width: 260px;
+            box-sizing: border-box;
+        }
 
-.profile-name {
-    color: #fff !important;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
+        .profile-name {
+            color: #fff !important;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
 
-.profile-role {
-    color: #d1d1d1 !important;
-    font-size: 13px;
-    font-weight: 500;
-}
+        .profile-role {
+            color: #d1d1d1 !important;
+            font-size: 13px;
+            font-weight: 500;
+        }
 
-.drawer-links a {
-    color: #eee;
-}
+        .drawer-links a {
+            color: #eee;
+        }
 
-.drawer-links a:hover {
-    background: rgba(255, 215, 0, 0.1);
-    color: #ffd700; /* جولد محترق عند الهوفر */
-}
-
+        .drawer-links a:hover {
+            background: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+            /* جولد محترق عند الهوفر */
+        }
     </style>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <!-- Bootstrap CSS -->
