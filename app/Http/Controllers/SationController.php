@@ -310,11 +310,17 @@ class SationController extends Controller
         ->orderByDesc('id')
         ->value('base_hour_price') ?? 0);
 
-      // تأكد من عدد الأشخاص (fallback إلى 1 لو مفيش)
+        // تأكد من عدد الأشخاص (fallback إلى 1 لو مفيش)
       $persons = max(1, (int) ($session->persons ?? 1));
 
-      // حساب سعر الساعات (عدد * أشخاص * سعر الساعة)
-      $hours_price = round($hours * $persons * $hourly_rate, 2);
+        // حساب سعر الساعات (عدد * أشخاص * سعر الساعة)
+      $hours_price_befor_extra = round($hours * $persons * $hourly_rate, 2);
+        // زيادة الأفراد: فقط لو عدد الساعات 1 أو أكثر
+      $extra_per_person = ($hours >= 1) ? ($persons * 5) : 0;
+        
+        // إجمالي السعر بعد الزيادة
+      $hours_price = $hours_price_befor_extra + $extra_per_person;
+
 
       // eager load للعلاقات المهمة (لو مش محملة)
       $session->loadMissing('purchases.product');

@@ -80,30 +80,19 @@
 
                             <!-- الحقول -->
                             <div class="mb-3">
-                                <label class="form-label">📅 اليوم</label>
-                                <input type="text" id="day_picker" class="form-control" placeholder="اختر اليوم">
-                                @error('day_picker')
-                                    <div class="text-danger mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-
-                            <div class="mb-3">
-                                <label class="form-label"> وقت البداية</label>
-
-                                <input type="text" name="start_at_full" id="start_time" class="form-control"
-                                    placeholder="اختر وقت البداية" readonly>
-                                @error('start_at')
+                                <label class="form-label">وقت البداية (تاريخ ووقت)</label>
+                                <input type="datetime-local" name="start_at_local" id="start_at_full" class="form-control"
+                                    value="{{ old('start_at_full') ? \Carbon\Carbon::parse(old('start_at_full'))->format('Y-m-d\\TH:i') : '' }}">
+                                @error('start_at_full')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label"> وقت النهاية</label>
-
-                                <input type="text" name="end_at_full" id="end_time" class="form-control"
-                                    placeholder="اختر وقت النهاية" readonly>
-                                @error('end_at')
+                                <label class="form-label">وقت النهاية (تاريخ ووقت)</label>
+                                <input type="datetime-local" name="end_at_local" id="end_at_full" class="form-control"
+                                    value="{{ old('end_at_full') ? \Carbon\Carbon::parse(old('end_at_full'))->format('Y-m-d\\TH:i') : '' }}">
+                                @error('end_at_full')
                                     <div class="text-danger mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -178,9 +167,10 @@
                                             });
 
                                             // ensure min date not before start date if start exists
+                                            // `start_at_full` is now a datetime-local input (value: YYYY-MM-DDTHH:MM)
                                             const startHidden = document.getElementById('start_at_full');
                                             if (startHidden && startHidden.value) {
-                                                const startDate = startHidden.value.split(' ')[0]; // YYYY-MM-DD
+                                                const startDate = startHidden.value.split('T')[0]; // YYYY-MM-DD
                                                 if (startDate) endInput.min = startDate;
                                             }
                                         } else {
@@ -217,8 +207,8 @@
                                 <label class="form-label">ملاحظات</label>
                                 <textarea name="notes" class="form-control" rows="3">{{ old('notes') }}</textarea>
                             </div>
-                            <input type="hidden" name="start_at_full" id="start_at_full">
-                            <input type="hidden" name="end_at_full" id="end_at_full">
+                            <input type="hidden" name="start_at_full" id="start_at_full_hidden">
+                            <input type="hidden" name="end_at_full" id="end_at_full_hidden">
 
                         <button type="submit" class="btn-submit">💾 إضافة الحجز</button>
 
@@ -282,91 +272,79 @@
 
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Flatpickr -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script>
+        // Simple duration calculator for native datetime-local inputs.
         document.addEventListener("DOMContentLoaded", function() {
-            // 🟢 اختيار اليوم فقط
-            const dayPicker = flatpickr("#day_picker", {
-                dateFormat: "Y-m-d",
-                onChange: function(selectedDates) {
-                    if (selectedDates.length > 0) {
-                        // بعد اختيار اليوم افتح start time
-                        document.getElementById("start_time").click();
-                    }
+            const startInput = document.getElementById('start_at_full');
+            const endInput = document.getElementById('end_at_full');
+            const durationHidden = document.getElementById('duration');
+            const durationDisplay = document.getElementById('duration_display');
+
+            function updateDuration() {
+                if (!startInput || !endInput) return;
+                if (!startInput.value || !endInput.value) return;
+
+                let start = new Date(startInput.value);
+                let end = new Date(endInput.value);
+
+                // if end is before or equal start, assume next day
+                if (end <= start) {
+                    end.setDate(end.getDate() + 1);
                 }
-            });
 
-            // ⏰ اختيار وقت البداية
-            const startPicker = flatpickr("#start_time", {
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "h:i K", // ← AM/PM
-                time_24hr: false,
-                onChange: function() {
-                    document.getElementById("end_time").click(); // بعد ما يختار البداية يفتح النهاية
-                    calcDuration();
-                }
-            });
+                const diffMin = Math.round((end - start) / (1000 * 60));
+                durationHidden.value = diffMin;
 
-            // ⏰ اختيار وقت النهاية
-            const endPicker = flatpickr("#end_time", {
-                enableTime: true,
-                noCalendar: true,
-                dateFormat: "h:i K", // ← AM/PM
-                time_24hr: false,
-                onChange: function() {
-                    calcDuration();
-                }
-            });
-
-
-            function calcDuration() {
-                let day = document.getElementById("day_picker").value; // "2025-09-30"
-                let start = document.getElementById("start_time").value; // "11:00 PM"
-                let end = document.getElementById("end_time").value; // "10:00 AM"
-
-                if (day && start && end) {
-                    // تحويل لنماذج Date محلية
-                    let startDate = new Date(day + " " + start);
-                    let endDate = new Date(day + " " + end);
-
-                    // لو نهاية اليوم أقل أو تساوي البداية => اعتبرها اليوم التالي
-                    if (endDate <= startDate) {
-                        endDate.setDate(endDate.getDate() + 1);
-                    }
-
-                    // فرق بالدقايق (الآن موجب دائماً)
-                    let diff = (endDate - startDate) / (1000 * 60);
-
-                    // اكتب القيمة للـ hidden duration
-                    document.getElementById("duration").value = Math.round(diff);
-
-                    // عرض المدة بصورة مقروءة
-                    let hours = Math.floor(diff / 60);
-                    let minutes = Math.round(diff % 60);
-                    let text = (hours > 0 ? hours + " ساعة " : "") + (minutes > 0 ? minutes + " دقيقة" : "");
-                    document.getElementById("duration_display").value = text || "0 دقيقة";
-
-                    // ✅ مهم: ارسال التاريخ كامل + الوقت بصيغة Y-m-d H:i:s (بتوقيت المحلّي كما دخل المستخدم)
-                    function fmt(d) {
-                        return d.getFullYear() + "-" +
-                            String(d.getMonth() + 1).padStart(2, '0') + "-" +
-                            String(d.getDate()).padStart(2, '0') + " " +
-                            String(d.getHours()).padStart(2, '0') + ":" +
-                            String(d.getMinutes()).padStart(2, '0') + ":00";
-                    }
-
-                    document.getElementById("start_at_full").value = fmt(startDate);
-                    document.getElementById("end_at_full").value = fmt(endDate);
-                }
+                const hours = Math.floor(diffMin / 60);
+                const minutes = diffMin % 60;
+                durationDisplay.value = (hours > 0 ? hours + ' ساعة ' : '') + (minutes > 0 ? minutes + ' دقيقة' : '') || '0 دقيقة';
             }
 
-            // لو في كود آخر بيستدعي calcDuration بشكل مباشر أو عند submit فمش حاجة إضافية هنا
-            // لكن لو عندك listener على الفورم يغيّر start_time/end_time قبل الإرسال — تأكد إنه لا يغيّر hidden fields الخاصة start_at_full/end_at_full
+            if (startInput) {
+                startInput.addEventListener('change', function() {
+                    // set min for end date input (date part)
+                    try {
+                        if (endInput && startInput.value) {
+                            endInput.min = startInput.value.split('T')[0];
+                        }
+                    } catch (e) {}
+                    updateDuration();
+                });
+            }
 
+            if (endInput) endInput.addEventListener('change', updateDuration);
+
+            // run once on load if old values exist
+            updateDuration();
+
+            // Populate server-friendly hidden fields before submit
+            const startHidden = document.getElementById('start_at_full_hidden');
+            const endHidden = document.getElementById('end_at_full_hidden');
+            const bookingForm = startInput ? startInput.closest('form') : document.querySelector('form');
+
+            function fmtForServer(d) {
+                function pad(n){return String(n).padStart(2,'0');}
+                return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':00';
+            }
+
+            if (bookingForm) {
+                bookingForm.addEventListener('submit', function(e){
+                    // ensure duration updated
+                    updateDuration();
+
+                    if (startInput && startInput.value && startHidden) {
+                        const d = new Date(startInput.value);
+                        startHidden.value = fmtForServer(d);
+                    }
+                    if (endInput && endInput.value && endHidden) {
+                        const d2 = new Date(endInput.value);
+                        // if end <= start assume next day
+                        if (startInput && startInput.value && d2 <= new Date(startInput.value)) d2.setDate(d2.getDate()+1);
+                        endHidden.value = fmtForServer(d2);
+                    }
+                });
+            }
         });
     </script>
 
@@ -988,8 +966,6 @@
             }, 300);
         });
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <script>
         (function($) {
             // === CONFIG: عدل إذا غيرت أسماء الحقول في الـ Blade ===
@@ -1005,8 +981,8 @@
                 resultsItemClass: 'result-item',
                 noResultsHtml: '<div style="padding:8px; color:#999;">لا توجد نتائج</div>',
                 // الحقول التي ننتقل بينها عند الضغط Enter (ترتيب) — عدّل إذا لزم
-                tabOrder: ['#client_search', '#client_name', 'input[name="attendees"]', '#day_picker',
-                    '#start_time', '#end_time'
+                tabOrder: ['#client_search', '#client_name', 'input[name="attendees"]', '#start_at_full',
+                    '#end_at_full'
                 ]
             };
 
@@ -1361,7 +1337,8 @@
             if (!calendar) return;
 
             // selectors ممكن تعدّلهم لو عندك أسماء مختلفة
-            const DAY_PICKER_SELECTOR = '#day_picker';
+            // calendar integration now fills the start datetime input
+            const DAY_PICKER_SELECTOR = '#start_at_full';
             const DAY_BOOKINGS_CONTENT_SEL = '#day-bookings-content'; // المكان اللي بتعرض فيه تفاصيل اليوم
             const DAY_BOOKINGS_SECTION_SEL = '#day-bookings-section'; // بديل محتمل لو موجود
 
@@ -1440,14 +1417,11 @@
                 const dayPicker = document.querySelector(DAY_PICKER_SELECTOR);
                 if (dayPicker) {
                     try {
-                        dayPicker.value = date;
-                        // أطلق حدث تغيير لكي تُفعّل جميع الـ listeners المرتبطة
-                        dayPicker.dispatchEvent(new Event('input', {
-                            bubbles: true
-                        }));
-                        dayPicker.dispatchEvent(new Event('change', {
-                            bubbles: true
-                        }));
+                        // dayPicker is a datetime-local input; set a sensible default time (09:00)
+                        dayPicker.value = date + 'T09:00';
+                        // dispatch change so other listeners (duration/min updates) run
+                        dayPicker.dispatchEvent(new Event('input', { bubbles: true }));
+                        dayPicker.dispatchEvent(new Event('change', { bubbles: true }));
                     } catch (err) {}
                 }
 
