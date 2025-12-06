@@ -16,7 +16,6 @@ use Carbon\Carbon;
 use App\Models\Shift;
 use App\Models\SubscriptionVisit;
 
-
 class SubscriptionController extends Controller
 {
 
@@ -70,6 +69,48 @@ public function ajaxSearch(Request $request)
     }));
 }
 
+public function ajaxSearchManager(Request $request)
+{
+    // مرونة: نقبل q أو search أو query
+    $q = $request->query('q') ?? $request->query('search') ?? $request->query('query');
+
+    $statuses = $request->query('statuses', []);
+    $plans = $request->query('plans', []);
+
+    $subs = Subscription::with(['client', 'plan'])
+        ->where('is_active', true)
+        ->when($q, function ($query) use ($q) {
+            $query->where(function($qq) use ($q) {
+                // لو المستخدم كتب رقم (أو id) نجرب المطابقة بالـ id
+                if (is_numeric($q)) {
+                    $qq->orWhere('id', $q)
+                       ->orWhereHas('client', fn($c) => $c->where('id', $q));
+                }
+                // البحث بـ name أو phone داخل علاقة client
+                $qq->orWhereHas('client', fn($c) =>
+                    $c->where('name', 'like', "%{$q}%")
+                      ->orWhere('phone', 'like', "%{$q}%")
+                );
+            });
+        })
+        ->when($statuses, fn($query) => $query->whereIn('is_active', (array)$statuses))
+        ->when($plans, fn($query) => $query->whereIn('plan_id', (array)$plans))
+        ->orderBy('start_date', 'desc')
+        ->get();
+
+    return response()->json($subs->map(function ($s) {
+        return [
+            'id' => $s->id,
+            'client_name' => $s->client->name ?? '',
+            'client_phone' => $s->client->phone ?? '',
+            'plan_name' => $s->plan->name ?? '',
+            'start_date' => $s->start_date,
+            'end_date' => $s->end_date,
+            'remaining_visits' => $s->remaining_visits,
+            'is_active' => $s->is_active ? 'فعال' : 'منتهي',
+        ];
+    }));
+}
 
   public function create()
   {
@@ -431,6 +472,7 @@ public function ajaxSearch(Request $request)
     }
   }
 
+ 
 public function decrease(Subscription $subscription)
 {
     // نفتح transaction و lock للصف الخاص بالاشتراك عشان نمنع حالات السباق
@@ -533,6 +575,76 @@ public function decrease(Subscription $subscription)
     }); // end transaction
 }
 
+public function decreaseFromSession(Subscription $subscription)
+{
+    return DB::transaction(function () use ($subscription) {
+
+        // إعادة جلب الاشتراك مع lock
+        $subscription = Subscription::lockForUpdate()->find($subscription->id);
+
+        if (!$subscription) {
+            return redirect()->route('subscriptions.index')
+                ->with('error', '❌ الاشتراك غير موجود');
+        }
+
+        // تحقق من صلاحية الاشتراك
+        if (!$subscription->is_active || ($subscription->end_date && Carbon::today()->gt(Carbon::parse($subscription->end_date)))) {
+            return redirect()->route('subscriptions.index')
+                ->with('error', '❌ لا يمكن استخدام هذا الاشتراك لأنه منتهي أو غير فعال.');
+        }
+
+        // حساب رقم الزيارة داخل الاشتراك
+        $visitNumber = $subscription->visits()->count() + 1;
+
+        $visit = SubscriptionVisit::create([
+            'subscription_id'   => $subscription->id,
+            'client_id'         => $subscription->client_id,
+            'visit_number'      => $visitNumber,
+            'checked_in_at'     => now(),
+            'attended'          => true,
+            'notes'             => null,
+            'created_by'        => auth()->id() ?? null,
+        ]);
+
+        // لو remaining_visits معرف ومقيد
+        if (!is_null($subscription->remaining_visits)) {
+            if ($subscription->remaining_visits > 1) {
+                $subscription->decrement('remaining_visits');
+                $subscription->update([
+                    'attendees' => 1,
+                    'visit_date' => now()
+                ]);
+
+                return redirect()->route('session.index-manager')
+                    ->with('success', 'تم تسجيل الزيارة وتنقيص عدد الزيارات. المتبقي: ' . $subscription->remaining_visits);
+            } elseif ($subscription->remaining_visits == 1) {
+                $subscription->decrement('remaining_visits');
+                $subscription->update([
+                    'attendees' => 1,
+                    'visit_date' => now(),
+                    'is_active' => false,
+                ]);
+
+                return redirect()->route('subscriptions.index')
+                    ->with('success', '✅ هذه آخر زيارة في اشتراك العميل (' . $subscription->client->name . ')');
+            } else {
+                // remaining_visits <= 0
+                DB::rollBack();
+                return redirect()->route('subscriptions.index')
+                    ->with('error', '❌ لا يوجد زيارات متبقية للاشتراك الخاص بالعميل (' . $subscription->client->name . ')');
+            }
+        }
+
+        // لو الاشتراك غير محدود
+        $subscription->update([
+            'attendees' => 1,
+            'visit_date' => now()
+        ]);
+
+        return redirect()->route('subscriptions.index')
+            ->with('success', 'تم تسجيل الزيارة (اشتراك غير مقيد بعدد جلسات).');
+    });
+}
 
 
 }

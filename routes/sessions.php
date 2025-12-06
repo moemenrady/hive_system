@@ -6,8 +6,10 @@ use App\Http\Controllers\SationController;
 
 Route::middleware('auth')->group(function () {
 
- 
-// Route::get('/session/create', [SationController::class, 'create'])->name("session.create")->middleware("auth");
+
+  // Route::get('/session/create', [SationController::class, 'create'])->name("session.create")->middleware("auth");
+  Route::post('/sessions/{session}/purchases/update', [SessionPurchaseController::class, 'updatePurchases'])
+    ->name('sessionPurchases.update');
 
   Route::post('/start_session', [SationController::class, 'store'])->name("session.store")->middleware("auth");
   Route::post('/start_session', [SationController::class, 'storeFromManager'])->name("session.store.manager")->middleware("auth");
@@ -25,7 +27,7 @@ Route::put('/sessions/{session}/reduce-minutes', [SationController::class, 'redu
   Route::post('/sessions/{session}/checkout', [SationController::class, 'checkout'])->name('sessions.checkout');
   Route::put('/sessions/{session}/update-time', [SationController::class, 'updateStartTime'])
     ->name('sessions.updateStartTime');
-    
+
   // إضافة مشتريات
   Route::post('/sessions/{session}/purchases', [SessionPurchaseController::class, 'storeItem'])->name('session.purchase.store');
   Route::post('/sessions/{session}/items', [SessionPurchaseController::class, 'storeItems'])

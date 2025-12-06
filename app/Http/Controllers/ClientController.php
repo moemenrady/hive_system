@@ -13,7 +13,9 @@ use App\Models\Subscription;
 use Illuminate\Http\Request;
 
 use App\Models\Specialization;
+
 use App\Models\EducationStage;
+
 use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
@@ -67,8 +69,8 @@ class ClientController extends Controller
       ->sum('persons');
     $active_attendees_in_bookings = Booking::where('status', 'in_progress')
       ->sum('attendees');
-    $active_clients_count = $active_subscribers_count + $active_attendees_in_bookings + $active_session_persons;
-    return view('clients.index', compact("clients", "active_clients_count", "count_client", ));
+    $active_clients_count = $active_subscribers_count + $active_attendees_in_bookings +$active_session_persons ;
+    return view('clients.index', compact("clients","active_clients_count", "count_client", ));
 
   }
 
@@ -79,6 +81,7 @@ class ClientController extends Controller
       'phone' => $request->get('phone')
     ]);
   }
+  
   public function searchId(Request $request)
   {
     $query = trim($request->get('query', ''));
@@ -107,6 +110,7 @@ class ClientController extends Controller
 
     return response()->json($results);
   }
+  
   public function edit(Client $client)
   {
     $specializations = Specialization::orderBy('name')->get();
@@ -141,7 +145,7 @@ class ClientController extends Controller
     return redirect()->route('clients.show', $client->id)
       ->with('success', 'تم تحديث بيانات العميل بنجاح.');
   }
-  public function nextId(Request $request)
+    public function nextId(Request $request)
   {
     if (!auth()->check()) {
       // اختياري: لو حابب ترجع خطأ واضح بدل إعادة توجيه لصفحة login
@@ -161,4 +165,5 @@ class ClientController extends Controller
       return response()->json(['success' => false, 'error' => 'خطأ في الحصول على المعرف'], 500);
     }
   }
+
 }

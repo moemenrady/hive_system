@@ -15,6 +15,7 @@ return new class extends Migration {
       $table->string('name');
       $table->string('setter_name')->nullable();
       $table->boolean('user_appearance')->default(true);
+      $table->boolean('is_product_material')->default(false);
       $table->timestamps();
     });
 

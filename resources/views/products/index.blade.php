@@ -237,9 +237,9 @@ tbody td {
         </tbody>
     </table>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
     // الانتقال لتفاصيل المنتج عند الضغط على الصف
     document.querySelectorAll('#productTable tr').forEach(row => {
         row.addEventListener('click', function () {
@@ -248,35 +248,139 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // قالب الرابط من لارافيل (مرة واحدة فقط)
+    const showRouteTemplate = "{{ route('products.show', ':id') }}";
+
     // البحث AJAX
     document.getElementById('searchBox').addEventListener('keyup', function() {
+
         let query = this.value;
+
         fetch("{{ route('products.search') }}?query=" + query)
             .then(response => response.json())
             .then(data => {
+
                 let tbody = document.getElementById('productTable');
                 tbody.innerHTML = "";
+
                 if (data.length > 0) {
+
                     data.forEach(item => {
-                        tbody.innerHTML += `
-                        <tr data-href="{{ route('products.show', ':id') }}".replace(':id', item.id)>
+
+                        const tr = document.createElement('tr');
+
+                        // عمل الرابط داخل data-href
+                        const url = showRouteTemplate.replace(':id', encodeURIComponent(item.id));
+                        tr.dataset.href = url;
+                        tr.style.cursor = "pointer";
+
+                        tr.innerHTML = `
                             <td data-label="المعرف">${item.id}</td>
                             <td data-label="اسم المنتج">${item.name}</td>
                             <td data-label="السعر">${item.price}</td>
                             <td data-label="التكلفة">${item.cost}</td>
                             <td data-label="العدد">${item.quantity}</td>
-                        </tr>`;
+                        `;
+
+                        // نفس الفكرة زي الكود الأول
+                        tr.addEventListener('click', () => {
+                            window.location.href = url;
+                        });
+
+                        tbody.appendChild(tr);
                     });
+
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center">❌ لا توجد نتائج</td></tr>`;
+
+                    tbody.innerHTML = `
+                        <tr><td colspan="5" class="text-center">❌ لا توجد نتائج</td></tr>
+                    `;
                 }
             });
     });
 });
 </script>
 
-{{-- المودالات --}}
-@include('products.modals.choose-action')
-@include('products.modals.add-product')
-@include('products.modals.add-quantity')
-@endsection
+
+
+
+
+    {{-- المودالات --}}
+    @include('products.modals.choose-action')
+    @include('products.modals.add-product')
+    @include('products.modals.add-quantity')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addQtyModal = document.getElementById('addQuantityModal');
+            if (!addQtyModal) return;
+
+            // لما المودال يفتح
+            addQtyModal.addEventListener('shown.bs.modal', function() {
+                const searchInput = document.getElementById('searchProduct');
+                const resultsList = document.getElementById('searchResults');
+                const form = document.getElementById('addQuantityForm');
+                const productIdInput = document.getElementById('product_id');
+
+                if (!searchInput || !resultsList || !form || !productIdInput) return;
+
+                // reset كل مرة يفتح فيها المودال
+                searchInput.value = '';
+                resultsList.innerHTML = '';
+                form.style.display = 'none';
+                productIdInput.value = '';
+                searchInput.focus();
+
+                // علشان ما نربطش نفس الحدث أكتر من مرة
+                if (searchInput.dataset.bound === '1') return;
+                searchInput.dataset.bound = '1';
+
+                // السيرش
+                searchInput.addEventListener('keyup', function() {
+                    const q = this.value.trim();
+                    if (q.length < 1) {
+                        resultsList.innerHTML = '';
+                        form.style.display = 'none';
+                        return;
+                    }
+
+                    fetch("{{ route('products.search') }}?query=" + encodeURIComponent(q))
+                        .then(res => res.json())
+                        .then(items => {
+                            resultsList.innerHTML = '';
+
+                            if (!items.length) {
+                                resultsList.innerHTML =
+                                    '<li class="list-group-item text-center text-muted">لا توجد نتائج</li>';
+                                form.style.display = 'none';
+                                return;
+                            }
+
+                            items.forEach(item => {
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item list-group-item-action';
+                                li.style.cursor = 'pointer';
+                                li.textContent = `${item.name} (المعرف: ${item.id})`;
+
+                                li.addEventListener('click', function() {
+                                    productIdInput.value = item.id;
+                                    form.action =
+                                        "{{ route('products.addQuantity', ':id') }}"
+                                        .replace(':id', item.id);
+
+                                    form.style.display = 'block';
+                                    resultsList.innerHTML = '';
+                                    searchInput.value = item.name;
+                                });
+
+                                resultsList.appendChild(li);
+                            });
+                        })
+                        .catch(err => {
+                            console.error('Search error:', err);
+                        });
+                });
+            });
+        });
+    </script>
+  @endsection

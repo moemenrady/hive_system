@@ -652,7 +652,22 @@
     </div>
 
     @include('session.modal.start-booking')
+@include('session.modal.active_sub_modal')
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            @if (session('client_has_active_sub'))
+                console.log("فتح المودال");
+                var modalEl = document.getElementById('activeSubModal');
+                if (modalEl) {
+                    var modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
+            @endif
+        });
+    </script>
 
     <!-- ====== السكربت: دمج وظائف البحث والعداد مع جلب الجلسات ====== -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

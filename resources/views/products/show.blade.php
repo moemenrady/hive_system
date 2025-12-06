@@ -99,7 +99,8 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="updateProductForm" action="{{ route('products.update', $product->id) }}" method="POST">
+<form id="updateProductForm" action="{{ route('products.update', $product->id) }}" method="POST">
+
                         @csrf
                         @method('PUT')
 
@@ -179,32 +180,7 @@
                 $('#editProductModal').modal('show');
             });
 
-            // 🔹 حفظ تعديل المنتج (AJAX)
-            $('#updateProductForm').on('submit', function(e) {
-                e.preventDefault();
-                $.ajax({
-                    url: $(this).attr('action'),
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function() {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'تم التحديث!',
-                            timer: 1200,
-                            showConfirmButton: false
-                        });
-                        $('#editProductModal').modal('hide');
-                        setTimeout(() => location.reload(), 1300);
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'خطأ!',
-                            text: xhr.responseJSON?.message || 'حدث خطأ أثناء الحفظ'
-                        });
-                    }
-                });
-            });
+      
 
             // 🔹 إضافة منتج مهم
             $('#addImportantForm').on('submit', function(e) {
@@ -416,6 +392,73 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
+        }.modal-dark {
+    background: #111115 !important;
+    color: #f5f5f5 !important;
+    border-radius: 22px;
+    border: 1px solid rgba(212, 175, 55, 0.12); /* جولد خفيف */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+}
+
+/* الهيدر */
+.modal-dark .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-dark .modal-title {
+    color: #d4af37 !important;
+    font-weight: 700;
+}
+
+/* زر الإغلاق */
+.modal-dark .btn-close-white {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+.modal-dark .btn-close-white:hover {
+    opacity: 1;
+}
+
+/* المحتوى الداخلي */
+.modal-dark .modal-body {
+    color: #f5f5f5 !important;
+}
+
+/* الليبلز */
+.modal-dark .form-label {
+    color: #d4af37;
+    font-weight: 600;
+}
+
+/* الانبوت الداكن */
+.dark-input {
+    background: #141416 !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    border-radius: 10px;
+}
+
+.dark-input:focus {
+    border-color: #d4af37 !important;
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important;
+}
+
+/* الأزرار */
+.btn-submit {
+    background: linear-gradient(135deg, #d4af37, #b78d2a) !important;
+    border: none !important;
+    color: #111 !important;
+    font-weight: bold;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 12px;
+    transition: .25s;
+}
+
+.btn-submit:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+}
     </style>
 @endsection

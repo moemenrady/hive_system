@@ -11,6 +11,7 @@ use App\Models\SessionPurchase;
 use App\Models\Shift;
 use App\Models\SystemAction;
 use App\Models\Visit;
+use App\Models\Subscription;
 use App\Services\ShiftService;
 use App\Support\InvoiceNumber;
 use Auth;
@@ -591,7 +592,26 @@ public function storeFromManager(Request $request)
 
           return back()->with('error', $msg);
         }
+  $forceStart = $request->boolean('session_for_subscriber');
+        // لو مفيش force start نتحقق من الاشتراك
+        if (!$forceStart) {
 
+          $activeSub = Subscription::where("client_id", $client->id)
+            ->where("is_active", true)
+            ->first();
+
+          if ($activeSub) {
+
+            return back()
+              ->with('client_has_active_sub', 'العميل لديه اشتراك نشط بالفعل.')
+              ->with('active_subscription_id', $activeSub->id)
+              ->with('return_phone', $phone)
+              ->with('return_name', $name)
+              ->with('return_persons', $persons);
+
+          }
+
+        }
         // لا توجد جلسة نشطة -> إنشاء جلسة جديدة للعميل الموجود
         $session = Sation::create([
           'client_id' => $client->id,
