@@ -22,19 +22,28 @@
             </script>
         @endif
 
-        {{-- ✅ الملخص الكلي --}}
-        <div class="summary-card animate__animated animate__fadeInUp">
-            <div class="summary-item">
-                <h4>💰 الإيراد الكلي</h4>
-                <div>{{ number_format($total_income, 2) }} ج.م</div>
-            </div>
-            <div class="summary-item">
-                <h4>🧾 المصروف الكلي</h4>
-                <div>{{ number_format($total_expense, 2) }} ج.م</div>
-            </div>
-            <div class="summary-item">
-                <h4>🏁 الصافي الكلي</h4>
-                <div>{{ number_format($total_net, 2) }} ج.م</div>
+        {{-- الملخص الكلي --}}
+        <div class="form-container animate__animated animate__fadeInUp" style="max-width:1100px; margin: 0 auto 20px;">
+            <div style="display:flex; gap:18px; flex-wrap:wrap; justify-content:space-between; align-items:center;">
+                <div style="flex:1; min-width:200px;">
+                    <h4 style="margin:0 0 8px;">💰 الإيراد الكلي</h4>
+
+                    <div style="font-size:20px; font-weight:700;">
+                        {{ number_format($total_income, 2) }} ج.م
+                        <small style="font-size:14px; color:#555; font-weight:400;">
+                            (كاش: {{ number_format($totalCash, 2) }} - ديجيتال: {{ number_format($totalDigital, 2) }})
+                        </small>
+                    </div>
+                </div>
+
+                <div style="flex:1; min-width:200px;">
+                    <h4 style="margin:0 0 8px;">🧾 المصروف الكلي</h4>
+                    <div style="font-size:20px; font-weight:700;">{{ number_format($total_expense, 2) }} ج.م</div>
+                </div>
+                <div style="flex:1; min-width:200px; text-align:right;">
+                    <h4 style="margin:0 0 8px;">🏁 الصافي الكلي</h4>
+                    <div style="font-size:20px; font-weight:700;">{{ number_format($total_net, 2) }} ج.م</div>
+                </div>
             </div>
         </div>
 

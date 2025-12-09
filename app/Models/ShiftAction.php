@@ -12,6 +12,7 @@ class ShiftAction extends Model
         'invoice_id',
         'amount',
         'expense_amount',
+        'payment_type',
         'expense_draft_id', // تأكد أنه موجود هنا
         'notes',
     ];

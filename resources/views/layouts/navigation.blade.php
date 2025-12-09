@@ -7,8 +7,8 @@
             <a href="{{ route('main.create') }}" class={{ Request::is('/') || Request::is('main') ? 'active' : '' }}>
                 الرئيسية
             </a>
-            <a href="{{ route('bookings.index') }}" class={{ Request::is('bookings') ? 'active' : '' }}>
-                الحجوزات
+            <a href="{{ route('expenses.index') }}" class={{ Request::is('bookings') ? 'active' : '' }}>
+                المصروفات
             </a>
             <a href="{{ route('subscriptions.index') }}" class={{ Request::is('subscriptions') ? 'active' : '' }}>
                 الاشتراكات

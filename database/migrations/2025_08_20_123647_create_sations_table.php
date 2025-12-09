@@ -20,6 +20,7 @@ return new class extends Migration {
       $table->timestamp('end_time')->nullable();
       $table->integer('persons')->default(1);
       $table->enum('status', ['active', 'closed'])->default('active');
+      $table->boolean('isPayed')->default(false);
       $table->timestamps();
 
     });

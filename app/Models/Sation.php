@@ -11,6 +11,7 @@ class Sation extends Model
     'start_time',
     'persons',
     'end_time',
+    'isPayed',
     'status',
   ];
 
