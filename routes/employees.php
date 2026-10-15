@@ -19,5 +19,5 @@ Route::get('/employees/{id}/edit', [EmployeeController::class, 'edit'])->name('e
     '/employees/discount-percent',
     [EmployeeController::class, 'indexDiscountPercent']
   )->name('employees.discountPercent');
-  Route::resource('employees', EmployeeController::class);
+  Route::resource('employees', EmployeeController::class)->except(['edit', 'update']);
 });
