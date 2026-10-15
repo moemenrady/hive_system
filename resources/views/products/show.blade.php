@@ -31,14 +31,27 @@
                     </div>
 
                     <div class="row">
+                        @if (Auth::user()->role === 'admin')
+                            <div class="col">
+                                <label class="lbl">🧾 التكلفة</label>
+                                <p class="value">{{ number_format($product->cost, 2) }} ج.م</p>
+                            </div>
+                        @endif
                         <div class="col">
-                            <label class="lbl">🧾 التكلفة</label>
-                            <p class="value">{{ number_format($product->cost, 2) }} ج.م</p>
+                            <label class="lbl">
+                                {{ $product->is_produced ? '📋 الريسبي' : '📦 الكمية بالمخزون' }}
+                            </label>
+
+                            @if ($product->is_produced)
+                                <a href="#" class="recipe-btn" data-bs-toggle="modal"
+                                    data-bs-target="#editRecipeModal">
+                                    عرض الريسبي
+                                </a>
+                            @else
+                                <p class="value">{{ $product->quantity }}</p>
+                            @endif
                         </div>
-                        <div class="col">
-                            <label class="lbl">📦 الكمية بالمخزون</label>
-                            <p class="value">{{ $product->quantity }}</p>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -100,6 +113,7 @@
                 </div>
                 <div class="modal-body">
                     <form id="updateProductForm" action="{{ route('products.update', $product->id) }}" method="POST">
+
                         @csrf
                         @method('PUT')
 
@@ -114,13 +128,13 @@
                             <input type="number" step="0.01" name="price" class="form-control dark-input"
                                 value="{{ $product->price }}" required>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label text-gold">🧾 التكلفة</label>
-                            <input type="number" step="0.01" name="cost" class="form-control dark-input"
-                                value="{{ $product->cost }}" required>
-                        </div>
-
+                        @if (Auth::user()->role === 'admin')
+                            <div class="mb-3">
+                                <label class="form-label text-gold">🧾 التكلفة</label>
+                                <input type="number" step="0.01" name="cost" class="form-control dark-input"
+                                    value="{{ $product->cost }}" required>
+                            </div>
+                        @endif
                         <div class="mb-3">
                             <label class="form-label text-gold">📦 الكمية</label>
                             <input type="number" name="quantity" class="form-control dark-input"
@@ -165,11 +179,160 @@
             </div>
         </div>
     </div>
+    @if ($product->is_produced)
+        <div class="modal fade animate__animated animate__fadeInDown" id="editRecipeModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content rounded-4 shadow"
+                    style="background: var(--card-surface); color: var(--text-bright);">
+
+                    <div class="modal-header bg-warning text-dark rounded-top-4">
+                        <h5 class="modal-title">📋 تعديل ريسبي المنتج</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <form action="{{ route('products.updateRecipe', $product->id) }}" method="POST" id="recipeForm">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="modal-body">
+                            <div id="editIngredientsList">
+                                @if ($product->ingredients->isEmpty())
+                                    <div class="row g-2 mb-2 ingredient-row">
+                                        <div class="col-md-5">
+                                            <select name="ingredients[]" class="form-control">
+                                                <option value="">اختر الخامة...</option>
+                                                @foreach ($ingredients as $item)
+                                                    <option value="{{ $item->id }}">{{ $item->name }}
+                                                        ({{ $item->unit->symbol }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <input type="number" step="0.001" name="amounts[]" value=""
+                                                class="form-control">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button"
+                                                class="btn btn-outline-danger w-100 removeEditRow">🗑️</button>
+                                        </div>
+                                    </div>
+                                @else
+                                    @foreach ($product->ingredients as $ing)
+                                        <div class="row g-2 mb-2 ingredient-row">
+                                            <div class="col-md-5">
+                                                <select name="ingredients[]" class="form-control">
+                                                    <option value="">اختر الخامة...</option>
+                                                    @foreach ($ingredients as $item)
+                                                        <option value="{{ $item->id }}"
+                                                            {{ $item->id == $ing->id ? 'selected' : '' }}>
+                                                            {{ $item->name }} ({{ $item->unit->symbol }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <input type="number" step="0.001" name="amounts[]"
+                                                    value="{{ $ing->pivot->amount }}" class="form-control">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button"
+                                                    class="btn btn-outline-danger w-100 removeEditRow">🗑️</button>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </div>
+
+
+                            <button type="button" id="addEditIngredientBtn" class="btn btn-sm btn-outline-warning mt-2">
+                                + إضافة خامة
+                            </button>
+
+                        </div>
+
+                        <div class="modal-footer border-0">
+                            <button type="submit" class="btn-icon btn-edit w-100"
+                                style="background: var(--primary-gold); color:#000;">
+                                ✅ إتمام التعديل
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
 @endsection
 
 @section('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        console.log("Script Loaded");
+
+        document.addEventListener("DOMContentLoaded", function() {
+            console.log("DOM Ready");
+
+            const list = document.getElementById("editIngredientsList");
+            const addBtn = document.getElementById("addEditIngredientBtn");
+
+            console.log("List:", list);
+            console.log("Button:", addBtn);
+        });
+
+        document.addEventListener("click", function(e) {
+
+            // ➕ إضافة خامة
+            if (e.target && e.target.id === "addEditIngredientBtn") {
+
+                console.log("Add button clicked");
+
+                const list = document.getElementById("editIngredientsList");
+
+                if (!list) {
+                    console.log("List not found");
+                    return;
+                }
+
+                const firstRow = list.querySelector(".ingredient-row");
+                if (!firstRow) {
+                    console.log("No rows found");
+                    return;
+                }
+
+                const newRow = firstRow.cloneNode(true);
+
+                newRow.querySelector("select").value = "";
+                newRow.querySelector("input").value = "";
+
+                list.appendChild(newRow);
+            }
+
+            // ❌ حذف خامة
+            // ❌ حذف خامة
+            if (e.target.closest(".removeEditRow")) {
+
+                console.log("Remove clicked");
+
+                const list = document.getElementById("editIngredientsList");
+                const row = e.target.closest(".ingredient-row");
+
+                // احفظ نسخة من الصف الجديد الفارغ
+                const newRow = row.cloneNode(true);
+                newRow.querySelector("select").value = "";
+                newRow.querySelector("input").value = "";
+
+                // امسح الصف الحالي
+                row.remove();
+
+                // أضف صف جديد فارغ بدل الصف المحذوف
+                list.appendChild(newRow);
+            }
+
+
+        });
+    </script>
     <script>
         $(function() {
 
@@ -179,32 +342,7 @@
                 $('#editProductModal').modal('show');
             });
 
-            // 🔹 حفظ تعديل المنتج (AJAX)
-            $('#updateProductForm').on('submit', function(e) {
-                e.preventDefault();
-                $.ajax({
-                    url: $(this).attr('action'),
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function() {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'تم التحديث!',
-                            timer: 1200,
-                            showConfirmButton: false
-                        });
-                        $('#editProductModal').modal('hide');
-                        setTimeout(() => location.reload(), 1300);
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'خطأ!',
-                            text: xhr.responseJSON?.message || 'حدث خطأ أثناء الحفظ'
-                        });
-                    }
-                });
-            });
+
 
             // 🔹 إضافة منتج مهم
             $('#addImportantForm').on('submit', function(e) {
@@ -269,6 +407,7 @@
             });
         });
     </script>
+
 @endsection
 
 @section('style')
@@ -416,6 +555,99 @@
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        .modal-dark {
+            background: #111115 !important;
+            color: #f5f5f5 !important;
+            border-radius: 22px;
+            border: 1px solid rgba(212, 175, 55, 0.12);
+            /* جولد خفيف */
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+        }
+
+        /* الهيدر */
+        .modal-dark .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .modal-dark .modal-title {
+            color: #d4af37 !important;
+            font-weight: 700;
+        }
+
+        /* زر الإغلاق */
+        .modal-dark .btn-close-white {
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+
+        .modal-dark .btn-close-white:hover {
+            opacity: 1;
+        }
+
+        /* المحتوى الداخلي */
+        .modal-dark .modal-body {
+            color: #f5f5f5 !important;
+        }
+
+        /* الليبلز */
+        .modal-dark .form-label {
+            color: #d4af37;
+            font-weight: 600;
+        }
+
+        /* الانبوت الداكن */
+        .dark-input {
+            background: #141416 !important;
+            border: 1px solid #333 !important;
+            color: #fff !important;
+            border-radius: 10px;
+        }
+
+        .dark-input:focus {
+            border-color: #d4af37 !important;
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.3) !important;
+        }
+
+        /* الأزرار */
+        .btn-submit {
+            background: linear-gradient(135deg, #d4af37, #b78d2a) !important;
+            border: none !important;
+            color: #111 !important;
+            font-weight: bold;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 12px;
+            transition: .25s;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .recipe-btn {
+            background: #ffb84d;
+            color: #1a1a1a;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.2s;
+            display: inline-block;
+        }
+
+        .recipe-btn:hover {
+            background: #ffd97a;
+            transform: scale(1.05);
+        }
+
+        .form-control {
+            background: #121212 !important;
+            border: 1px solid #333 !important;
+            color: white !important;
         }
     </style>
 @endsection

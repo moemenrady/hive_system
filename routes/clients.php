@@ -12,13 +12,14 @@ Route::middleware('auth')->group(function () {
 
   Route::get('/search-clients', [ClientController::class, 'search'])->name('clients.search');
   Route::get('/search-clients-id', [ClientController::class, 'searchId'])->name('clients.search.id');
-  //تعديل العملاء =======================
+    //تعديل العملاء =======================
 
   // عرض فورم التعديل
   Route::get('/clients/{client}/edit', [ClientController::class, 'edit'])->name('clients.edit');
 
   // تحديث بيانات العميل
   Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
+
 
 });
 

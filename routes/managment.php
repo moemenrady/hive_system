@@ -19,7 +19,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
  Route::post('/managment-expense-types/create', [ExpenseTypeController::class, 'store'])->name('expense-type.store');
 
   Route::get('/managment-subscription-plans/create', [SubscriptionPlanController::class, 'create'])->name('subscription-plan.create');
- Route::post('/managment-subscription-plans/create', [SubscriptionPlanController::class, 'store'])->name('subscription-plan.store');
+  Route::post('/managment-subscription-plans/create', [SubscriptionPlanController::class, 'store'])->name('subscription-plan.store');
+  Route::put('/managment-subscription-plans/{id}', [SubscriptionPlanController::class, 'update'])->name('subscription-plan.update');
+  Route::delete('/managment-subscription-plans/{id}', [SubscriptionPlanController::class, 'destroy'])->name('subscription-plan.destroy');
 
    Route::get('/managment-full-day-hours/create', [FullDayHoursController::class, 'create'])->name('full-day-hours.create');
  Route::post('/managment-full-day-hours/create', [FullDayHoursController::class, 'store'])->name('full-day-hours.store');

@@ -1,11 +1,13 @@
 <?php
+
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionVisitController;
+use Illuminate\Support\Facades\Route;
 
 // الاشتراكات 
 
 Route::middleware('auth')->group(function () {
-
+  // مسار حذف الاشتراك
   // ✅ صفحة الاشتراكات الرئيسية (بالفلاتر و الجدول)
   Route::get('/subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
 
@@ -14,6 +16,8 @@ Route::middleware('auth')->group(function () {
 
   // ✅ API Ajax للبحث و الفلترة
   Route::get('/subscriptions/ajax-search', [SubscriptionController::class, 'ajaxSearch'])->name('subscriptions.ajaxSearch');
+  Route::get('/subscriptions/ajax-search-manager', [SubscriptionController::class, 'ajaxSearchManager'])->name('subscriptions.ajaxSearchManager');
+
 
   // ✅ إنشاء اشتراك جديد
   Route::get('/subscriptions/create', [SubscriptionController::class, 'create'])->name('subscriptions.create');
@@ -23,6 +27,9 @@ Route::middleware('auth')->group(function () {
 
   // ✅ إنقاص زيارة
   Route::post('/subscriptions/{subscription}/decrease', [SubscriptionController::class, 'decrease'])->name('subscriptions.decrease');
+  Route::post('/subscriptions/{subscription}/decrease_from_sessions', [SubscriptionController::class, 'decreaseFromSession'])->name('subscriptions.decrease_from_sessions');
+  Route::delete('/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+
 
   // ✅ باقي الروتات الخاصة بالخطط والعملاء
   Route::get('/plans', [SubscriptionController::class, 'plans'])->name('plans');
@@ -41,15 +48,13 @@ Route::middleware('auth')->group(function () {
     ->name('subscriptions.visits.show')
     ->middleware('auth');
 
-// API لجلب زيارات الاشتراك (AJAX)
-Route::get('subscriptions/{subscription}/visits/list', [SubscriptionVisitController::class, 'visitsList'])
+  // API لجلب زيارات الاشتراك (AJAX)
+  Route::get('subscriptions/{subscription}/visits/list', [SubscriptionVisitController::class, 'visitsList'])
     ->name('subscriptions.visits.list')
     ->middleware('auth');
 
-// ختم الخروج للزيارة
-Route::post('subscription-visits/{visit}/checkout', [SubscriptionVisitController::class, 'checkout'])
+  // ختم الخروج للزيارة
+  Route::post('subscription-visits/{visit}/checkout', [SubscriptionVisitController::class, 'checkout'])
     ->name('subscription-visits.checkout')
     ->middleware('auth');
 });
-
-

@@ -1,0 +1,22 @@
+.btn {
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all .2s ease;
+}
+
+.btn-primary {
+  background: var(--olive-dark);
+  color: var(--cream);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: #5A5E50;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--olive-dark);
+  color: var(--olive-dark);
+}

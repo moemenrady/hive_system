@@ -20,9 +20,7 @@ class ExpenseDraftController extends Controller
 {
   public function create()
   {
-    $drafts = ExpenseDraft::with('user') // عشان نجيب بيانات الموظف اللي عمل الدرفت
-      ->latest()
-      ->paginate(10);
+    $drafts = ExpenseDraft::with('user')->orderBy('created_at', 'desc')->get(); // جلب الكل
 
     $types = ExpenseType::where('user_appearance', 1)->get();
 
@@ -35,14 +33,14 @@ class ExpenseDraftController extends Controller
       ->where('created_by', auth()->id())
       ->latest()
       ->paginate(10);
-        $types = ExpenseType::where('user_appearance', 1)->get();
+    $types = ExpenseType::where('user_appearance', 1)->get();
 
     return view('expense.user.index', compact('drafts', "types"));
   }
 
   public function store(Request $request)
   {
-  
+
     $request->validate([
       'note' => 'nullable|string|max:255',
       'estimated_amount' => 'required|numeric|min:0',
@@ -50,17 +48,16 @@ class ExpenseDraftController extends Controller
     ]);
 
     $user = Auth::user();
-    if($user->hasRole('admin')){
-            DB::rollBack();
-        return redirect()->back()->with('error', '⚠️ الادارة لا تضيف المصروف كملاحظات');
-    
+    if ($user->hasRole('admin')) {
+      DB::rollBack();
+      return redirect()->back()->with('error', '⚠️ الادارة لا تضيف المصروف كملاحظات');
     }
-      $openShift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
-  if (!$openShift && !$user->hasRole('admin')) {
-        DB::rollBack();
+    $openShift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
+    if (!$openShift && !$user->hasRole('admin')) {
+      DB::rollBack();
       session()->flash('shift_required', true);
-        return redirect()->back()->with('error', '⚠️ لا يوجد شيفت مفتوح، ابدأ شيفت أولاً.');
-      }
+      return redirect()->back()->with('error', '⚠️ لا يوجد شيفت مفتوح، ابدأ شيفت أولاً.');
+    }
     // نستخدم transaction عشان إذا حصل خطأ نتراجع
     DB::beginTransaction();
 
@@ -77,7 +74,7 @@ class ExpenseDraftController extends Controller
 
       if (!$openShift && !$user->hasRole('admin')) {
         DB::rollBack();
-      session()->flash('shift_required', true);
+        session()->flash('shift_required', true);
 
         return redirect()->back()->with('error', '⚠️ لا يوجد شيفت مفتوح، ابدأ شيفت أولاً.');
       }
@@ -108,7 +105,6 @@ class ExpenseDraftController extends Controller
       DB::commit();
 
       return redirect()->back()->with('success', 'تم حفظ الملاحظة كـ Draft ✅ وتم إضافتها للشيفت (إن وُجد).');
-
     } catch (\Throwable $e) {
       DB::rollBack();
       // لو تحب تطبع $e->getMessage() في اللوج أو للـ debug فقط
@@ -116,5 +112,29 @@ class ExpenseDraftController extends Controller
       return redirect()->back()->with('error', 'حدث خطأ أثناء الحفظ، حاول مرة أخرى.');
     }
   }
-}
 
+
+  public function bulkDelete(Request $request)
+  {
+    $request->validate([
+      'ids' => 'required|array',
+      'ids.*' => 'exists:expense_drafts,id',
+    ]);
+
+    try {
+      DB::beginTransaction();
+
+      // حذف الـ ShiftActions المرتبطة أولاً لتجنب مشاكل الـ Foreign Key
+      ShiftAction::whereIn('expense_draft_id', $request->ids)->delete();
+
+      // حذف الـ Drafts
+      ExpenseDraft::whereIn('id', $request->ids)->delete();
+
+      DB::commit();
+      return response()->json(['success' => 'تم حذف المصروفات المحددة بنجاح.']);
+    } catch (\Exception $e) {
+      DB::rollBack();
+      return response()->json(['error' => 'حدث خطأ أثناء الحذف.'], 500);
+    }
+  }
+}

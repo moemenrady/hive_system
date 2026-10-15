@@ -73,6 +73,14 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
 
 <script>
+    // جعل الدالة Global لكي يمكن استدعاؤها من داخل الكروت الديناميكية
+    window.confirmCancelSimple = function(id, clientName, startFormatted, endFormatted) {
+        const message = `هل أنت متأكد من إلغاء الحجز للعميل: ${clientName}\nمن: ${startFormatted}\nإلى: ${endFormatted}\n\n(سيتم استرجاع أي مقدم إذا وُجد)`;
+        if (confirm(message)) {
+            document.getElementById(`cancelForm-${id}`).submit();
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         let searchBox = document.getElementById("searchBox");
         let checkboxes = document.querySelectorAll(".status-filter");
@@ -80,14 +88,15 @@
         let fromDate = null,
             toDate = null;
 
-        // route للـ show
+        // Routes and Tokens
         let showRoute = @json(route('bookings.show', ':id'));
+        let cancelRoute = @json(route('bookings.cancel', ':id'));
+        let csrfToken = @json(csrf_token());
 
         // Flatpickr لتحديد المدى الزمني
         flatpickr("#dateRange", {
             mode: "range",
             dateFormat: "Y-m-d",
-
             onChange: function(selectedDates) {
                 if (selectedDates.length === 2) {
                     fromDate = selectedDates[0].toISOString().split('T')[0];
@@ -115,24 +124,16 @@
             let q = searchBox.value || '';
             let statuses = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
 
-            let params = new URLSearchParams({
-                q
-            });
+            let params = new URLSearchParams({ q });
             if (fromDate) params.append("from", fromDate);
             if (toDate) params.append("to", toDate);
             statuses.forEach(s => params.append("statuses[]", s));
 
-            // Debug: تحقق من الرابط قبل الطلب
-            console.log("Fetching bookings with params:", params.toString());
-
             fetch("{{ route('bookings.ajaxSearchManager') }}?" + params.toString())
                 .then(res => res.json())
-
                 .then(data => {
-                    console.log("Received data:", data);
                     bookingsList.innerHTML = "";
 
-                    // إذا data مش array، حوّلها إلى array
                     let bookingsArray = Array.isArray(data) ? data : Object.values(data);
 
                     if (!bookingsArray.length) {
@@ -143,38 +144,49 @@
 
                     bookingsArray.forEach(b => {
                         let actionBtns = "";
+                        
+                        // إضافة أزرار التعديل والإلغاء لحالات "لم يبدأ" و "ليس الآن"
                         if (b.status === "scheduled" || b.status === "due") {
-                            actionBtns =
-                                `<a href="/bookings/${b.id}/edit" class="btn btn-sm btn-outline-primary">✏️ تعديل</a>`;
+                            // تنظيف اسم العميل لتجنب أخطاء الـ Quotes في الجافاسكربت
+                            let safeClientName = b.client_name ? b.client_name.replace(/'/g, "\\'") : '-';
+                            let formAction = cancelRoute.replace(':id', b.id);
+                            
+                            actionBtns = `
+                                <a href="/bookings/${b.id}/edit" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">✏️ تعديل</a>
+                                
+                                <form id="cancelForm-${b.id}" action="${formAction}" method="POST" style="display:inline;">
+                                    <input type="hidden" name="_token" value="${csrfToken}">
+                                    <button type="button" class="btn btn-sm btn-danger" 
+                                            onclick="event.stopPropagation(); window.confirmCancelSimple(${b.id}, '${safeClientName}', '${formatDateTime(b.start_at)}', '${formatDateTime(b.end_at)}')">
+                                        ❌ إلغاء
+                                    </button>
+                                </form>
+                            `;
                         }
 
-                        // حساب يوم الأسبوع باللهجة المصرية (0 = الأحد)
-                        const weekdayNames = ['الحد', 'الاتنين', 'التلات', 'الأربع', 'الخميس',
-                            'الجمعة', 'السبت'
-                        ];
+                        // حساب يوم الأسبوع
+                        const weekdayNames = ['الحد', 'الاتنين', 'التلات', 'الأربع', 'الخميس', 'الجمعة', 'السبت'];
                         const startDate = new Date(b.start_at);
                         const weekdayLabel = weekdayNames[startDate.getDay()];
 
                         bookingsList.innerHTML += `
-        <div class="booking-card" onclick="window.location.href='${showRoute.replace(':id', b.id)}'" style="cursor:pointer;">
-            <div class="info">
-                <h3>${b.title}</h3>
-                <p>👤 ${b.client_name || '-'} | 📞 ${b.client_phone || '-'}</p>
-                <p>🏛️ ${b.hall_name || '-'} | 👥 ${b.attendees || 0}</p>
-                <!-- هنا نعرض يوم الأسبوع -->
-                <p class="weekday">📅 ${weekdayLabel}</p>
-                <p>⏰ من: ${formatDateTime(b.start_at)} <br> إلى: ${formatDateTime(b.end_at)}</p>
-            </div>
-            <div class="meta">
-                <span class="badge bg-${statusColor(b.status)}">${statusLabel(b.status)}</span>
-                <p class="mt-2">💰 ${parseFloat(b.estimated_total).toFixed(2)}</p>
-                <div class="actions mt-2">${actionBtns}</div>
-            </div>
-        </div>
-    `;
+                            <div class="booking-card" onclick="window.location.href='${showRoute.replace(':id', b.id)}'" style="cursor:pointer;">
+                                <div class="info">
+                                    <h3>${b.title}</h3>
+                                    <p>👤 ${b.client_name || '-'} | 📞 ${b.client_phone || '-'}</p>
+                                    <p>🏛️ ${b.hall_name || '-'} | 👥 ${b.attendees || 0}</p>
+                                    <p class="weekday">📅 ${weekdayLabel}</p>
+                                    <p>⏰ من: ${formatDateTime(b.start_at)} <br> إلى: ${formatDateTime(b.end_at)}</p>
+                                </div>
+                                <div class="meta">
+                                    <span class="badge bg-${statusColor(b.status)}">${statusLabel(b.status)}</span>
+                                    <p class="mt-2">💰 ${parseFloat(b.estimated_total).toFixed(2)}</p>
+                                    <div class="actions mt-2">${actionBtns}</div>
+                                </div>
+                            </div>
+                        `;
                     });
                 })
-
                 .catch(err => {
                     console.error("Error fetching bookings:", err);
                     bookingsList.innerHTML = `<p class="no-results">❌ حدث خطأ أثناء جلب البيانات</p>`;
@@ -183,35 +195,23 @@
 
         function statusColor(status) {
             switch (status) {
-                case "scheduled":
-                    return "secondary";
-                case "due":
-                    return "warning";
-                case "in_progress":
-                    return "info";
-                case "finished":
-                    return "success";
-                case "cancelled":
-                    return "danger";
-                default:
-                    return "dark";
+                case "scheduled": return "secondary";
+                case "due": return "warning";
+                case "in_progress": return "info";
+                case "finished": return "success";
+                case "cancelled": return "danger";
+                default: return "dark";
             }
         }
 
         function statusLabel(status) {
             switch (status) {
-                case "scheduled":
-                    return "ليس الآن";
-                case "due":
-                    return "لم يبدأ";
-                case "in_progress":
-                    return "جاري";
-                case "finished":
-                    return "منتهي";
-                case "cancelled":
-                    return "ملغي";
-                default:
-                    return "غير معروف";
+                case "scheduled": return "ليس الآن";
+                case "due": return "لم يبدأ";
+                case "in_progress": return "جاري";
+                case "finished": return "منتهي";
+                case "cancelled": return "ملغي";
+                default: return "غير معروف";
             }
         }
 

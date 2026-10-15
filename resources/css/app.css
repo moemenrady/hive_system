@@ -1,3 +1,9 @@
+@import "./client_site/_colors.css";
+@import "./client_site/_typography.css";
+@import "./client_site/_buttons.css";
+@import "./client_site/_cards.css";
+@import "./client_site/_layout.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

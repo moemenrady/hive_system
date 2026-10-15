@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-  
+
   /** @use HasFactory<\Database\Factories\UserFactory> */
   use HasFactory, Notifiable;
 
@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
     'email',
     'password',
     'role',
+    'salary'
   ];
 
   /**
@@ -54,5 +55,10 @@ class User extends Authenticatable implements MustVerifyEmail
   public function hasRole($role)
   {
     return $this->role === $role;
+  }
+
+  public function employee()
+  {
+    return $this->hasOne(Employee::class);
   }
 }

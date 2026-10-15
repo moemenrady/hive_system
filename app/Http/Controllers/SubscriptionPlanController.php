@@ -91,12 +91,15 @@ class SubscriptionPlanController extends Controller
       'visits_count.required' => '⚠️ عدد الزيارات مطلوب.',
       'duration_days.required' => '⚠️ مدة الأيام مطلوبة.',
       'price.required' => '⚠️ السعر مطلوب.',
+      'price.numeric' => '⚠️ السعر يجب أن يكون رقماً صحيحاً أو عشرياً.',
+      'price.min' => '⚠️ السعر لا يمكن أن يكون أقل من صفر.',
     ]);
+
     try {
       $plan->update($validated);
-      return redirect()->route('subscription_plans.index')->with('success', '✅ تم تحديث الخطة بنجاح.');
+      return redirect()->back()->with('success', '✅ تم تحديث سعر وبيانات خطة الاشتراك بنجاح.');
     } catch (\Exception $e) {
-      return redirect()->back()->with('error', '❌ حدث خطأ أثناء تحديث الخطة.');
+      return redirect()->back()->with('error', '❌ حدث خطأ أثناء تحديث الخطة: ' . $e->getMessage());
     }
   }
 
@@ -108,10 +111,15 @@ class SubscriptionPlanController extends Controller
     $plan = SubscriptionPlan::findOrFail($id);
 
     try {
+      $activeSubscriptionsCount = $plan->subscriptions()->where('is_active', true)->count();
+      if ($activeSubscriptionsCount > 0 && !request()->has('force')) {
+        return redirect()->back()->with('error', "⚠️ تنبيه: توجد ({$activeSubscriptionsCount}) اشتراكات نشطة حالياً مرتبطة بهذه الخطة. يفضل تعديل السعر مباشرة بدلاً من الحذف للحفاظ على اشتراكات العملاء الحالية.");
+      }
+
       $plan->delete();
-      return redirect()->back()->with('success', '✅ تم حذف الخطة بنجاح.');
+      return redirect()->back()->with('success', '✅ تم حذف خطة الاشتراك بنجاح.');
     } catch (\Exception $e) {
-      return redirect()->back()->with('error', '❌ لم يتم حذف الخطة.');
+      return redirect()->back()->with('error', '❌ لم يتم حذف الخطة: ' . $e->getMessage());
     }
   }
 }

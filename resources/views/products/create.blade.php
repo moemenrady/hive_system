@@ -1,5 +1,3 @@
-@extends('layouts.app')
-
 @section('page_title', 'إضافة منتج جديد')
 
 @section('content')

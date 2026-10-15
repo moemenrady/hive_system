@@ -4,59 +4,84 @@
 @section('title', 'عرض الفاتورة')
 
 @section('content')
-    <div class="subscription-container">
+    <div class="invoice-container">
         <div class="card">
             {{-- رأس الفاتورة --}}
             <div class="card-header">
-                <h2>فاتورة رقم: {{ $invoice->invoice_number }}</h2>
-                <span class="badge">{{ $invoice->created_at->format('d/m/Y') }}</span>
+                <div class="header-info">
+                    <h2>فاتورة رقم: <span>{{ $invoice->invoice_number }}</span></h2>
+                    <span class="badge">{{ $invoice->created_at->format('d/m/Y') }}</span>
+                </div>
+                <div class="header-actions">
+                    <button onclick="printInvoice()" class="btn btn-print">
+                        🖨 طباعة
+                    </button>
+                    @if (Auth::check() && Auth::user()->role === 'admin')
+                        <a href="{{ route('invoices.edit', $invoice->id) }}" class="btn btn-edit">
+                            ✏️ تعديل
+                        </a>
+                    @endif
+                </div>
             </div>
-            {{-- بيانات العميل إن لم تكن مشتريات فقط --}}
+
+            {{-- بيانات العميل --}}
             @if (!in_array($invoiceType, ['product']))
-                <div class="section">
+                <div class="section client-info">
                     <div class="box">
-                        <p><strong>العميل:</strong> {{ $invoice->client->name ?? 'غير معروف' }}
-                            {{ $invoice->client->id ?? '-' }}</p>
+                        <p><strong>👤 العميل:</strong> {{ $invoice->client->name ?? 'غير معروف' }}
+                            <span class="client-id">({{ $invoice->client->id ?? '-' }})</span>
+                        </p>
                     </div>
                 </div>
             @endif
-            {{-- حسب نوع الفاتورة --}}
-            @if (in_array($invoiceType, ['product', 'mixed']))
+
+            {{-- المشتريات الموحدة --}}
+            @if ($purchaseItems->isNotEmpty())
                 <div class="section">
-                    <h3>المشتريات</h3>
-                    @foreach ($groupedItems['product'] as $item)
-                        <div class="box">
-                            <p>اسم المنتج: {{ $item->name }}</p>
-                            <p>الكمية: {{ $item->qty }}</p>
-                            <p>سعر الوحدة: {{ $item->price }} ج</p>
-                            <p>الإجمالي: {{ $item->total }} ج</p>
+                    <h3>🛒 المشتريات</h3>
+                    <div class="table-responsive">
+                        <div class="table-header">
+                            <span>المنتج</span>
+                            <span>الكمية</span>
+                            <span>السعر</span>
+                            <span>الإجمالي</span>
                         </div>
-                    @endforeach
+                        @foreach ($purchaseItems as $item)
+                            <div class="table-row">
+                                <span>{{ $item->name }}</span>
+                                <span>{{ $item->qty }}</span>
+                                <span>{{ number_format($item->price, 2) }} ج</span>
+                                <span><strong>{{ number_format($item->total, 2) }} ج</strong></span>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 
-            @if (in_array($invoiceType, ['subscription', 'mixed']))
+            {{-- الاشتراكات --}}
+            @if (in_array($invoiceType, ['subscription', 'mixed']) && $groupedItems['subscription']->isNotEmpty())
                 <div class="section">
-                    <h3>فاتورة اشتراك</h3>
+                    <h3>🎟 فاتورة اشتراك</h3>
                     @foreach ($groupedItems['subscription'] as $item)
-                        <div class="box">
-                            <p>اسم الخطة: {{ $item->name }}</p>
-                            <p>السعر: {{ $item->price }} ج</p>
+                        <div class="box flex-box">
+                            <p><strong>اسم الخطة:</strong> {{ $item->name }}</p>
+                            <p><strong>السعر:</strong> {{ number_format($item->price, 2) }} ج</p>
                         </div>
                     @endforeach
                 </div>
             @endif
 
-            @if (in_array($invoiceType, ['booking', 'mixed']))
+            {{-- الحجوزات --}}
+            @if (in_array($invoiceType, ['booking', 'mixed']) && $groupedItems['booking']->isNotEmpty())
                 <div class="section">
-                    <h3>جلسة خاصة / حجز</h3>
+                    <h3>📅 جلسة خاصة / حجز</h3>
                     @foreach ($groupedItems['booking'] as $item)
                         <div class="box">
-                            <p>القاعة: {{ $bookingData->hall->name }} </p>
-
-                            <p>سعر الساعة: {{ $hourlyRate }} ج</p>
-                            <p id="duration-text-{{ $loop->index }}">مدة الجلسة: ...</p>
-                            <p>الإجمالي: {{ $item->total }} ج</p>
+                            <p><strong>القاعة:</strong> {{ $bookingData->hall->name ?? 'غير محدد' }} </p>
+                            <p><strong>سعر الساعة:</strong> {{ number_format($hourlyRate ?? 0, 2) }} ج</p>
+                            <p id="duration-text-{{ $loop->index }}" class="duration-highlight">مدة الجلسة: جاري الحساب...
+                            </p>
+                            <p class="item-total"><strong>الإجمالي:</strong> {{ number_format($item->total, 2) }} ج</p>
                         </div>
 
                         <script>
@@ -64,194 +89,185 @@
                                 const minutes = {{ $actualDurationMinutes ?? 0 }};
 
                                 function formatDurationArabic(minutes) {
-                                    if (minutes < 60) {
-                                        return `${minutes} دقيقة`;
-                                    }
+                                    if (minutes <= 0) return 'لم تبدأ بعد أو لم تحدد';
+                                    if (minutes < 60) return `${minutes} دقيقة`;
+
                                     const hours = Math.floor(minutes / 60);
                                     const remainingMinutes = minutes % 60;
-                                    let hourText = '';
-                                    if (hours === 1) hourText = 'ساعة';
-                                    else if (hours === 2) hourText = 'ساعتين';
-                                    else hourText = `${hours} ساعات`;
 
+                                    let hourText = hours === 1 ? 'ساعة' : hours === 2 ? 'ساعتين' : `${hours} ساعات`;
                                     let minuteText = '';
-                                    if (remainingMinutes === 15) {
-                                        minuteText = 'وربع';
-                                    } else if (remainingMinutes === 30) {
-                                        minuteText = 'ونصف';
-                                    } else if (remainingMinutes === 45) {
-                                        minuteText = 'إلا ربع';
-                                        // نزيد ساعة لأن "إلا ربع" يعني قبل الساعة التالية بربع
-                                        if (hours === 1) hourText = 'ساعتين إلا ربع';
-                                        else hourText = `${hours + 1} ساعات إلا ربع`;
+
+                                    if (remainingMinutes === 15) minuteText = 'وربع';
+                                    else if (remainingMinutes === 30) minuteText = 'ونصف';
+                                    else if (remainingMinutes === 45) {
+                                        hourText = hours === 1 ? 'ساعتين إلا ربع' : `${hours + 1} ساعات إلا ربع`;
                                         return hourText;
                                     } else if (remainingMinutes > 0) {
-                                        minuteText = `و${remainingMinutes} دقيقة`;
+                                        minuteText = `و ${remainingMinutes} دقيقة`;
                                     }
                                     return `${hourText} ${minuteText}`.trim();
                                 }
-
-                                const formatted = formatDurationArabic(minutes);
-                                document.getElementById("duration-text-{{ $loop->index }}").textContent =
-                                    `مدة الجلسة: ${formatted}`;
+                                document.getElementById("duration-text-{{ $loop->index }}").innerHTML =
+                                    `<strong>مدة الجلسة:</strong> ${formatDurationArabic(minutes)}`;
                             })
                             ();
                         </script>
                     @endforeach
                 </div>
-                @if ($groupedItems['deposit']->isNotEmpty())
-                    <div class="section">
-                        <h3>💰 الدفعات المقدمة</h3>
-
-                        @foreach ($groupedItems['deposit'] as $item)
-                            <div class="box deposit-box">
-                                <p>المبلغ المدفوع مقدمًا: <strong>{{ number_format($item->total, 2) }} ج</strong></p>
-                                @if (!empty($item->notes))
-                                    <p>ملاحظات: {{ $item->notes }}</p>
-                                @endif
-                                <p>تاريخ الدفع: {{ $item->created_at->format('Y-m-d H:i') }}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-
-                {{-- @if ($isHasPurchase == true)
-                    <div class="section">
-                        <h3>🛒 المشتريات</h3>
-                        <div class="purchase-list">
-                            <div class="purchase-header">
-                                <span>المنتج</span>
-                                <span>الكمية</span>
-                                <span>السعر</span>
-                                <span>الإجمالي</span>
-                            </div>
-                            @foreach ($groupedItems['product'] as $item)
-                                <div class="purchase-row">
-                                    <span>{{ $item->name }}</span>
-                                    <span>{{ $item->qty }}</span>
-                                    <span>{{ number_format($item->price, 2) }} ج</span>
-                                    <span>{{ number_format($item->total, 2) }} ج</span>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif --}}
-
             @endif
 
-            @if (in_array($invoiceType, ['session', 'mixed']))
+            {{-- الجلسات --}}
+            @if (in_array($invoiceType, ['session', 'mixed']) && $groupedItems['session']->isNotEmpty())
                 <div class="section">
-                    <h3>جلسة</h3>
+                    <h3>🎮 جلسة</h3>
                     @foreach ($groupedItems['session'] as $item)
-                        <div class="box">
-                            <p>سعر الساعة: {{ $item->price }} ج</p>
-                            <p>عدد الساعات: {{ $item->qty }}</p>
-                            <p>الإجمالي: {{ $item->total }} ج</p>
+                        <div class="box flex-box">
+                            <p><strong>سعر الساعة:</strong> {{ number_format($item->price, 2) }} ج</p>
+                            <p><strong>عدد الساعات:</strong> {{ $item->qty }}</p>
+                            <p class="item-total"><strong>الإجمالي:</strong> {{ number_format($item->total, 2) }} ج</p>
                         </div>
                     @endforeach
                 </div>
-                {{-- @if ($isHasPurchase == true)
-                    <div class="section">
-                        <h3>🛒 المشتريات</h3>
-                        <div class="purchase-list">
-                            <div class="purchase-header">
-                                <span>المنتج</span>
-                                <span>الكمية</span>
-                                <span>السعر</span>
-                                <span>الإجمالي</span>
-                            </div>
-                            @foreach ($groupedItems['product'] as $item)
-                                <div class="purchase-row">
-                                    <span>{{ $item->name }}</span>
-                                    <span>{{ $item->qty }}</span>
-                                    <span>{{ number_format($item->price, 2) }} ج</span>
-                                    <span>{{ number_format($item->total, 2) }} ج</span>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif --}}
-
-
             @endif
-            {{-- 🛒 قسم المشتريات الموحد --}}
-            @if ($purchaseItems->isNotEmpty())
+
+            {{-- الدفعات المقدمة والمقدم --}}
+            @if ($groupedItems['deposit']->isNotEmpty())
                 <div class="section">
-                    <h3>🛒 المشتريات</h3>
-                    <div class="purchase-list">
-                        <div class="purchase-header">
-                            <span>المنتج</span>
-                            <span>الكمية</span>
-                            <span>السعر</span>
-                            <span>الإجمالي</span>
+                    <h3>💰 الدفعات المقدمة (العربون)</h3>
+                    @if ($invoiceType === 'deposit')
+                        <div class="box">
+                            <p><strong>اسم العميل:</strong> {{ $extraData['client_name'] ?? 'غير معروف' }}</p>
+                            <p><strong>موعد الحجز:</strong> {{ $extraData['booking_date'] ?? '-' }}</p>
                         </div>
-                        @foreach ($purchaseItems as $item)
-                            <div class="purchase-row">
-                                <span>{{ $item->name }}</span>
-                                <span>{{ $item->qty }}</span>
-                                <span>{{ number_format($item->price, 2) }} ج</span>
-                                <span>{{ number_format($item->total, 2) }} ج</span>
+                    @endif
+
+                    @foreach ($groupedItems['deposit'] as $item)
+                        <div class="box deposit-box">
+                            <div class="flex-box">
+                                <p><strong>المبلغ المدفوع:</strong> {{ number_format($item->total, 2) }} ج</p>
+                                <p class="date-text">📅 {{ $item->created_at->format('Y-m-d h:i A') }}</p>
                             </div>
-                        @endforeach
-                    </div>
+                            @if (!empty($item->notes))
+                                <p class="notes">📝 ملاحظات: {{ $item->notes }}</p>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
             @endif
 
-            @if ($invoiceType === 'deposit')
-                <div class="section">
-                    <h3>مقدم الحجز</h3>
-                    <div class="box">
-                        <p>اسم العميل: {{ $extraData['client_name'] }}</p>
-                        <p>موعد الحجز: {{ $extraData['booking_date'] }}</p>
-                        @foreach ($groupedItems['deposit'] as $item)
-                            <p>المبلغ المدفوع: {{ $item->total }} ج</p>
-                        @endforeach
+            {{-- ملخص الفاتورة (الإجمالي والخصم) --}}
+            <div class="section summary-section">
+                <div class="summary-box">
+                    {{-- عرض المجموع قبل الخصم لو فيه خصم --}}
+                    @if (isset($invoice->discount_amount) && $invoice->discount_amount > 0)
+                        <div class="summary-row subtotal">
+                            <span>المجموع الفرعي:</span>
+                            <span>{{ number_format($invoice->subtotal ?? $totalAmount, 2) }} ج</span>
+                        </div>
+                        <div class="summary-row discount">
+                            <span>الخصم
+                                @if ($invoice->discount_reason)
+                                    <small class="discount-reason">({{ $invoice->discount_reason }})</small>
+                                @endif
+                                :
+                            </span>
+                            <span>- {{ number_format($invoice->discount_amount, 2) }} ج</span>
+                        </div>
+                    @endif
+
+                    {{-- الإجمالي النهائي --}}
+                    <div class="summary-row final-total">
+                        <span>الإجمالي الكلي:</span>
+                        <span>{{ number_format($invoice->total ?? $totalAmount - ($invoice->discount_amount ?? 0), 2) }}
+                            ج</span>
                     </div>
                 </div>
-            @endif
-
-            {{-- السعر الكلي --}}
-            <div class="section">
-                <h3>الإجمالي الكلي</h3>
-                <div class="box price">{{ $totalAmount }} ج</div>
             </div>
 
-            <div class="section">
-                <p style="text-align:center; margin-top:20px;">خلينا نشوفك تاني 😊</p>
+            <div class="footer-msg">
+                <p>خلينا نشوفك تاني 😊</p>
             </div>
         </div>
     </div>
+
+    <script>
+        function printInvoice() {
+            const content = document.querySelector(".card").innerHTML;
+            const printWindow = window.open('', '', 'width=600,height=800');
+
+            printWindow.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>طباعة الفاتورة - ${'{{ $invoice->invoice_number }}'}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        body {
+                            font-family: 'Cairo', sans-serif;
+                            direction: rtl;
+                            color: #000;
+                            padding: 20px;
+                            background: #fff;
+                        }
+                        .header-actions { display: none; } /* إخفاء الأزرار عند الطباعة */
+                        .header-info h2 { font-size: 20px; margin: 0 0 10px 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+                        .badge { background: #eee; padding: 5px 10px; border-radius: 5px; font-size: 14px; }
+                        .section { margin-bottom: 20px; }
+                        h3 { font-size: 16px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
+                        .box { padding: 10px; margin-bottom: 10px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+                        .flex-box { display: flex; justify-content: space-between; flex-wrap: wrap; }
+                        .table-responsive { width: 100%; }
+                        .table-header, .table-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 8px; font-size: 14px; text-align: center; }
+                        .table-header { font-weight: bold; background: #f0f0f0; border-bottom: 2px solid #ccc; }
+                        .table-row { border-bottom: 1px dashed #ccc; }
+                        .summary-box { border: 2px solid #000; padding: 15px; border-radius: 8px; margin-top: 20px; background: #fafafa; }
+                        .summary-row { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 8px; }
+                        .summary-row.discount { color: #d9534f; }
+                        .summary-row.final-total { font-weight: bold; font-size: 20px; border-top: 1px solid #ccc; padding-top: 10px; margin-top: 10px; }
+                        .footer-msg { text-align: center; margin-top: 30px; font-weight: bold; font-size: 16px; }
+                    </style>
+                </head>
+                <body>
+                    ${content}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.close();
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+    </script>
 @endsection
 
-
-
 @section('style')
-
-
     <style>
-        /* 🌌 ثيم Hive المظلم للفواتير */
+        /* 🌌 ثيم Hive المظلم والمطور */
         body {
-            background: #0f0f0f;
+            background-color: #0f0f0f;
             font-family: "Cairo", "Tahoma", sans-serif;
             color: #f5f5f5;
             margin: 0;
             padding: 0;
+            direction: rtl;
         }
 
-        .subscription-container {
-            max-width: 850px;
-            margin: 50px auto;
-            padding: 25px;
+        .invoice-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
         }
 
-        /* 🧾 الكارت الرئيسي */
         .card {
             background: #1a1a1a;
-            border-radius: 18px;
-            box-shadow: 0 6px 20px rgba(255, 184, 77, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
             padding: 30px;
-            animation: fadeInUp 0.6s ease;
-            border: 1px solid rgba(255, 184, 77, 0.08);
+            border: 1px solid rgba(255, 184, 77, 0.1);
+            animation: fadeIn 0.5s ease-in-out;
         }
 
         /* 🔹 رأس الفاتورة */
@@ -259,99 +275,206 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 184, 77, 0.15);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255, 184, 77, 0.2);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
         }
 
-        .card-header h2 {
-            font-size: 24px;
+        .header-info h2 {
+            font-size: 22px;
+            color: #fff;
+            margin: 0 0 8px 0;
+        }
+
+        .header-info h2 span {
             color: #ffb84d;
-            /* الذهبي المحروق */
-            margin: 0;
-            font-weight: 700;
         }
 
         .badge {
-            background: linear-gradient(90deg, #ffb84d, #a86f68);
-            color: #000;
-            padding: 6px 15px;
-            border-radius: 25px;
-            font-weight: bold;
+            background: rgba(255, 184, 77, 0.15);
+            color: #ffb84d;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 184, 77, 0.3);
         }
 
-        /* 🧩 العناوين */
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 🔘 الأزرار */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: none;
+        }
+
+        .btn-print {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-print:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #ffb84d, #f59e0b);
+            color: #111;
+        }
+
+        .btn-edit:hover {
+            box-shadow: 0 4px 15px rgba(255, 184, 77, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* 🧩 العناوين والصناديق */
+        .section {
+            margin-bottom: 25px;
+        }
+
         .section h3 {
             color: #ffb84d;
-            font-size: 19px;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* 📦 الصناديق */
         .box {
-            background: #111;
-            color: #f5f5f5;
-            padding: 10px 15px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 184, 77, 0.1);
-            margin-bottom: 8px;
-            box-shadow: inset 0 0 10px rgba(255, 184, 77, 0.03);
-            font-size: 13px;
-            line-height: 1.8;
-        }
-
-        .price {
-            font-weight: bold;
-            font-size: 20px;
-            color: #ffb84d;
-        }
-
-        /* 💰 الدفعات المقدمة */
-        .deposit-box {
-            background: #1e1e1e;
-            border: 1px solid rgba(255, 184, 77, 0.15);
-        }
-
-        /* 🛒 جدول المشتريات */
-        .purchase-list {
-            background: #161616;
+            background: #242424;
+            padding: 15px;
             border-radius: 10px;
-            box-shadow: inset 0 0 10px rgba(255, 184, 77, 0.03);
-            padding: 10px;
-            font-size: 13px;
+            border: 1px solid #333;
+            margin-bottom: 10px;
+            transition: background 0.3s ease;
         }
 
-        .purchase-header,
-        .purchase-row {
+        .box:hover {
+            background: #2a2a2a;
+        }
+
+        .box p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #ddd;
+        }
+
+        .flex-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .item-total {
+            color: #ffb84d;
+            font-size: 15px;
+        }
+
+        .deposit-box {
+            border-right: 4px solid #10b981;
+        }
+
+        /* 🛒 الجداول والمشتريات */
+        .table-responsive {
+            background: #242424;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .table-header,
+        .table-row {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 1fr;
-            align-items: center;
             text-align: center;
-            padding: 8px 0;
+            padding: 12px;
+            font-size: 14px;
         }
 
-        .purchase-header {
+        .table-header {
+            background: rgba(255, 184, 77, 0.1);
             color: #ffb84d;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255, 184, 77, 0.15);
+            font-weight: 700;
+            border-bottom: 1px solid #444;
         }
 
-        .purchase-row {
-            color: #ddd;
-            border-bottom: 1px dashed rgba(255, 184, 77, 0.08);
+        .table-row {
+            color: #ccc;
+            border-bottom: 1px solid #333;
         }
 
-        .purchase-row:last-child {
+        .table-row:last-child {
             border-bottom: none;
         }
 
-        /* 🧠 تأثير لطيف عند التحميل */
-        @keyframes fadeInUp {
+        /* 🧾 ملخص الفاتورة */
+        .summary-box {
+            background: linear-gradient(145deg, #1f1f1f, #181818);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 184, 77, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 15px;
+            color: #bbb;
+        }
+
+        .summary-row.discount {
+            color: #ef4444;
+        }
+
+        .discount-reason {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-right: 5px;
+        }
+
+        .summary-row.final-total {
+            font-size: 22px;
+            color: #ffb84d;
+            font-weight: bold;
+            border-top: 1px dashed #444;
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+
+        .footer-msg {
+            text-align: center;
+            margin-top: 30px;
+            color: #888;
+            font-size: 15px;
+        }
+
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(10px);
             }
 
             to {
@@ -360,44 +483,45 @@
             }
         }
 
-        /* 📱 موبايل */
-        @media (max-width: 600px) {
-
-            .purchase-header,
-            .purchase-row {
-                grid-template-columns: 1.5fr 0.8fr 0.8fr 0.8fr;
-                font-size: 12px;
+        /* 📱 الموبايل (Responsive) */
+        @media (max-width: 768px) {
+            .invoice-container {
+                padding: 10px;
+                margin: 20px auto;
             }
 
             .card {
                 padding: 20px;
             }
-        }
 
-        /* 🔘 الأزرار */
-        .btn {
-            background: linear-gradient(90deg, #ffb84d, #a86f68);
-            color: #000;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 25px;
-            font-weight: bold;
-            transition: 0.3s;
-        }
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
 
-        .btn:hover {
-            transform: scale(1.05);
-            background: linear-gradient(90deg, #a86f68, #ffb84d);
-        }
+            .header-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
 
-        /* ✨ تنبيهات */
-        .alert {
-            background: rgba(255, 184, 77, 0.1);
-            border: 1px solid rgba(255, 184, 77, 0.3);
-            color: #ffb84d;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 14px;
+            .btn {
+                flex: 1;
+            }
+
+            .table-header,
+            .table-row {
+                grid-template-columns: 1.5fr 1fr 1fr 1fr;
+                font-size: 12px;
+                padding: 10px 5px;
+            }
+
+            .summary-row {
+                font-size: 14px;
+            }
+
+            .summary-row.final-total {
+                font-size: 18px;
+            }
         }
     </style>
 @endsection

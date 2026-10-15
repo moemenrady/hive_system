@@ -13,7 +13,9 @@ use App\Models\Subscription;
 use Illuminate\Http\Request;
 
 use App\Models\Specialization;
+
 use App\Models\EducationStage;
+
 use Illuminate\Validation\Rule;
 
 class ClientController extends Controller
@@ -68,8 +70,7 @@ class ClientController extends Controller
     $active_attendees_in_bookings = Booking::where('status', 'in_progress')
       ->sum('attendees');
     $active_clients_count = $active_subscribers_count + $active_attendees_in_bookings + $active_session_persons;
-    return view('clients.index', compact("clients", "active_clients_count", "count_client", ));
-
+    return view('clients.index', compact("clients", "active_clients_count", "count_client",));
   }
 
   public function store(Request $request)
@@ -79,34 +80,84 @@ class ClientController extends Controller
       'phone' => $request->get('phone')
     ]);
   }
+
   public function searchId(Request $request)
   {
     $query = trim($request->get('query', ''));
 
     if ($query === '' || !ctype_digit($query)) {
-      return response()->json([], 200, ['Content-Type' => 'application/json; charset=utf-8']);
+      return response()->json([], 200, [
+        'Content-Type' => 'application/json; charset=utf-8'
+      ]);
     }
 
-    $results = Client::where('id', $query)
-      ->select(['id', 'name', 'phone', 'age', 'specialization_id', 'education_stage_id'])
-      ->get();
+    $results = Client::with('activeBlackList')
+      ->where('id', $query)
+      ->select([
+        'id',
+        'name',
+        'phone',
+        'age',
+        'specialization_id',
+        'education_stage_id'
+      ])
+      ->get()
+      ->map(function ($client) {
+        return [
+          'id' => $client->id,
+          'name' => $client->name,
+          'phone' => $client->phone,
+          'age' => $client->age,
+          'specialization_id' => $client->specialization_id,
+          'education_stage_id' => $client->education_stage_id,
 
-    // هُنا نعيد JSON مع JSON_UNESCAPED_UNICODE ليُطبع العربي بدون \uXXXX
-    return response()->json($results, 200, ['Content-Type' => 'application/json; charset=utf-8'], JSON_UNESCAPED_UNICODE);
+          'is_blacklisted' => (bool) $client->activeBlackList,
+          'blacklist_reason' => optional($client->activeBlackList)->reason,
+        ];
+      });
+
+    return response()->json(
+      $results,
+      200,
+      ['Content-Type' => 'application/json; charset=utf-8'],
+      JSON_UNESCAPED_UNICODE
+    );
   }
   public function search(Request $request)
   {
     $query = $request->get('query');
 
-    $results = Client::where('phone', 'LIKE', "%{$query}%")
-      ->orWhere('name', 'LIKE', "%{$query}%")
+    $results = Client::with('activeBlackList')
+      ->where(function ($q) use ($query) {
+        $q->where('phone', 'LIKE', "%{$query}%")
+          ->orWhere('name', 'LIKE', "%{$query}%");
+      })
+      ->select([
+        'id',
+        'name',
+        'phone',
+        'age',
+        'specialization_id',
+        'education_stage_id'
+      ])
+      ->get()
+      ->map(function ($client) {
+        return [
+          'id' => $client->id,
+          'name' => $client->name,
+          'phone' => $client->phone,
+          'age' => $client->age,
+          'specialization_id' => $client->specialization_id,
+          'education_stage_id' => $client->education_stage_id,
 
-      ->select('id', 'name', 'phone', 'age', 'specialization_id', 'education_stage_id') // هات اللي محتاجه
-
-      ->get();
+          'is_blacklisted' => (bool) $client->activeBlackList,
+          'blacklist_reason' => optional($client->activeBlackList)->reason,
+        ];
+      });
 
     return response()->json($results);
   }
+
   public function edit(Client $client)
   {
     $specializations = Specialization::orderBy('name')->get();
@@ -155,7 +206,6 @@ class ClientController extends Controller
         'success' => true,
         'last_id' => $lastId
       ], 200);
-
     } catch (\Exception $e) {
       \Log::error('nextId error: ' . $e->getMessage());
       return response()->json(['success' => false, 'error' => 'خطأ في الحصول على المعرف'], 500);

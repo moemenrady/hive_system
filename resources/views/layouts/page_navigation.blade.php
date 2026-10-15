@@ -41,5 +41,10 @@
             <i class="fa-solid fa-calendar-week"></i>
             <span class="label">اليومي</span>
         </a>
+
+        <a href="{{ route('analytics.comprehensive') }}" class="{{ Request::is('analytics/comprehensive*') ? 'active' : '' }}">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span class="label">التحليلات الشاملة</span>
+        </a>
     @endif
 </nav>

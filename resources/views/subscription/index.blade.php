@@ -199,6 +199,24 @@
             color: #bbb;
         }
     }
+
+    /* زر الحذف */
+    .btn-delete {
+        background: rgba(255, 77, 77, 0.15);
+        color: #ff4d4d;
+        border: 1px solid #ff4d4d;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+    .btn-delete:hover {
+        background: #ff4d4d;
+        color: white;
+    }
 </style>
 
 @section('content')
@@ -255,6 +273,7 @@
                     <th>إلى</th>
                     <th>المتبقي</th>
                     <th>الحالة</th>
+                    <th>الإجراءات</th>
                 </tr>
             </thead>
             <tbody id="subsTable">
@@ -304,23 +323,56 @@
                         } else {
                             data.forEach(s => {
                                 tableBody.innerHTML += `
-                        <tr class="subscription-row" data-id="${s.id}" style="cursor: pointer;">
-                            <td>${s.id}</td>
-                            <td>${s.client_name}</td>
-                            <td>${s.client_phone}</td>
-                            <td>${s.plan_name}</td>
-                            <td>${formatDateTime(s.start_date) ?? '-'}</td>
-                            <td>${formatDateTime(s.end_date) ?? '-'}</td>
-                            <td>${s.remaining_visits}</td>
-                            <td>
-                                ${s.is_active === "فعال"
-                                    ? `<span class="badge bg-success">فعال</span>`
-                                    : `<span class="badge bg-secondary">منتهي</span>`}
-                            </td>
-                        </tr>`;
+                                <tr class="subscription-row" data-id="${s.id}" style="cursor: pointer;">
+                                    <td>${s.id}</td>
+                                    <td>${s.client_name}</td>
+                                    <td>${s.client_phone}</td>
+                                    <td>${s.plan_name}</td>
+                                    <td>${formatDateTime(s.start_date) ?? '-'}</td>
+                                    <td>${formatDateTime(s.end_date) ?? '-'}</td>
+                                    <td>${s.remaining_visits}</td>
+                                    <td>
+                                        ${s.is_active === "فعال"
+                                            ? `<span class="badge bg-success">فعال</span>`
+                                            : `<span class="badge bg-secondary">منتهي</span>`}
+                                    </td>
+                                    <td>
+                                        <button class="btn-delete" onclick="deleteSubscription(event, ${s.id})">🗑️ حذف</button>
+                                    </td>
+                                </tr>`;
                             });
                             attachRowClick();
                         }
+                    });
+            }
+
+            // دالة الحذف الجديدة
+            window.deleteSubscription = function(event, id) {
+                // نوقف حدث الضغط على الصف عشان ما ينقلناش لصفحة التفاصيل
+                event.stopPropagation();
+
+                if (!confirm("⚠️ هل أنت متأكد من حذف هذا الاشتراك نهائياً؟ سيتم حذف جميع زياراته أيضاً.")) {
+                    return;
+                }
+
+                fetch(`/subscriptions/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}', // مهم جداً للحماية في لارافيل
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            fetchSubs(); // تحديث الجدول فوراً بعد الحذف
+                        } else {
+                            alert(data.message || "حدث خطأ أثناء الحذف");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("تعذر الاتصال بالخادم.");
                     });
             }
 

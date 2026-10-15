@@ -10,20 +10,55 @@ use Illuminate\Support\Carbon;
 
 class ShiftController extends Controller
 {
-public function show(Shift $shift)
-{
-    $shift->load(['user', 'actions.invoice', 'actions.expenseDraft']);
+  public function activeShifts()
+  {
+    $shifts = Shift::with('user')
+      ->whereNull('end_time')
+      ->latest()
+      ->get();
 
-    // حسابات مختصرة
-    $totalIncome = $shift->actions()->sum('amount');
+    return view('employees.active_shifts', compact('shifts'));
+  }
+
+  public function show(Shift $shift)
+  {
+    $shift->load([
+      'user',
+      'actions.invoice',
+      'actions.expenseDraft',
+      'actions.expenseDraft.expenseType',
+      'actions.expenseType'
+    ]);
+
+    // إجمالي الإيراد والمصروف
+    $totalIncome  = $shift->actions()->sum('amount');
     $totalExpense = $shift->actions()->sum('expense_amount');
-    $totalNet = $totalIncome - $totalExpense;
+    $totalNet     = $totalIncome - $totalExpense;
 
-    // ترتيب actions حسب الوقت (أحدث أول/قديم أول) — افترض created_at
-    $actions = $shift->actions()->orderBy('created_at', 'asc')->get();
+    // 👇 الجديد — تقسيم الإيراد حسب طريقة الدفع
+    $totalCash = $shift->actions()
+      ->where('payment_type', 'cash')
+      ->sum('amount');
 
-    return view('daily.user_shifts.show', compact('shift', 'actions', 'totalIncome', 'totalExpense', 'totalNet'));
-}
+    $totalDigital = $shift->actions()
+      ->where('payment_type', 'digital')
+      ->sum('amount');
+
+    $actions = $shift->actions()
+      ->with(['invoice', 'expenseDraft.expenseType', 'expenseType'])
+      ->orderBy('created_at', 'asc')
+      ->get();
+
+    return view('daily.user_shifts.show', compact(
+      'shift',
+      'actions',
+      'totalIncome',
+      'totalExpense',
+      'totalNet',
+      'totalCash',
+      'totalDigital'
+    ));
+  }
 
 
   public function index(Request $request)
@@ -169,7 +204,7 @@ public function show(Shift $shift)
       ->first();
 
     if ($openShift) {
-      
+
       return redirect()->route('main.create');
     }
 
@@ -187,7 +222,7 @@ public function show(Shift $shift)
       ->first();
 
     if (!$shift) {
-      
+
       return redirect()->back()->with('error', 'مفيش شيفت مفتوح حاليا');
     }
 
@@ -221,7 +256,7 @@ public function show(Shift $shift)
       ->whereNull('end_time')
       ->first();
     $isAdmin = $user->hasRole('admin');
-    if ($openShift&& !$isAdmin) {
+    if ($openShift && !$isAdmin) {
       return response()->json([
         'open' => true,
         'shift_id' => $openShift->id,
@@ -249,5 +284,23 @@ public function show(Shift $shift)
       'total_expense' => $shift->total_expense,
       'net_profit' => $shift->net_profit,
     ]);
+  }
+  public function closeShift($id)
+  {
+    $shift = Shift::findOrFail($id);
+
+    $shift->update([
+      'end_time' => now(),
+    ]);
+
+    return back()->with('success', 'تم إغلاق الشيفت');
+  }
+  public function deleteShift($id)
+  {
+    $shift = Shift::findOrFail($id);
+
+    $shift->delete();
+
+    return back()->with('success', 'تم حذف الشيفت');
   }
 }

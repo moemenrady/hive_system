@@ -43,16 +43,18 @@
                     </form>
                 </div>
             @endif
+            @if (Auth::user()->role === 'admin' || Auth::user()->role === 'supervisor')
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <form action="{{ route('ingredients.index') }}" method="GET">
+                        <button type="submit" class="custom-card w-100">
+                            <img src="https://img.icons8.com/ios/50/calendar.png" alt="icon">
+                            <span>الخامات</span>
+                        </button>
+                    </form>
+                </div>
+            @endif
 
             <div class="col-12 col-sm-6 col-lg-4">
-                <form action="{{ route('bookings.create') }}" method="GET">
-                    <button type="submit" class="custom-card w-100">
-                        <img src="https://img.icons8.com/ios/50/calendar.png" alt="icon">
-                        <span>إضافة حجز</span>
-                    </button>
-                </form>
-            </div>
- <div class="col-12 col-sm-6 col-lg-4">
                 <form action="{{ route('invoice.index') }}" method="GET">
                     <button type="submit" class="custom-card w-100">
                         <img src="https://img.icons8.com/ios/50/bill.png" alt="فاتورة">
@@ -89,24 +91,65 @@
                 </div>
             @else
                 @php
-                    $openShift = \App\Models\Shift::where('user_id', Auth::id())
-                        ->whereNull('end_time')
-                        ->first();
+                    $openShift = \App\Models\Shift::where('user_id', Auth::id())->whereNull('end_time')->first();
                 @endphp
                 <div class="col-12 col-sm-6 col-lg-4">
                     <form action="{{ route('shift.create') }}" method="GET">
                         <button type="submit" class="custom-card w-100">
                             <div class="card-content shift-stack">
-                                <span
-                                    class="shift-indicator-top {{ $openShift ? 'open' : 'closed' }}"></span>
+                                <span class="shift-indicator-top {{ $openShift ? 'open' : 'closed' }}"></span>
                                 <span>الشفت</span>
                             </div>
                         </button>
                     </form>
                 </div>
             @endif
+
+            <div class="col-12 col-sm-6 col-lg-4">
+                <form action="{{ route('new-session.index') }}" method="GET">
+                    <button type="submit" class="custom-card w-100 position-relative">
+                        <img src="https://img.icons8.com/ios/50/barcode.png" alt="icon">
+                        <span>جلسات لم تسجل</span>
+
+                        {{-- ✅ عداد الجلسات --}}
+                        @if ($newSessions && $newSessions->count() > 0)
+                            <span class="badge-new-sessions">
+                                {{ $newSessions->count() }}
+                            </span>
+                        @endif
+                    </button>
+                </form>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <form action="{{ route('employee_transactions.create') }}" method="GET">
+                    <button type="submit" class="custom-card w-100">
+                        <img src="https://img.icons8.com/ios/50/cash.png" alt="icon">
+                        <span>إضافة مسحوبات موظفين</span>
+                    </button>
+                </form>
+            </div>
+            @if (Auth::user()->role === 'admin')
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <form action="{{ route('employees.index') }}" method="GET">
+                        <button type="submit" class="custom-card w-100">
+                            <img src="https://img.icons8.com/ios/50/administrator-male.png" alt="icon">
+                            <span>الموظفين</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <form action="{{ route('activities.index') }}" method="GET">
+                        <button type="submit" class="custom-card w-100">
+                            <img src="https://img.icons8.com/ios/50/administrator broadcasting.png" alt="icon">
+                            <span>حركات المشرفين</span>
+                        </button>
+                    </form>
+                </div>
+            @endif
+
+
         </div>
     </main>
 
-  
+
 @endsection

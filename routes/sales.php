@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SaleProccess;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
 

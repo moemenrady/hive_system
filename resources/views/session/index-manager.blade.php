@@ -4,23 +4,34 @@
 
 @section('style')
     <style>
-      :root {
---bg-color: #0e0e11; /* خلفية الصفحة */
-  --card-bg: #16161a; /* لون الكروت */
-  --accent: #ffb84d; /* لون ذهبي عام */
-  --accent-light: #ffe6a3; /* فاتح للذهبي */
-  --text-main: #f5f5f5; /* النص الأساسي */
-  --text-dim: #bfbfbf; /* النص الثانوي */
-  --border-light: rgba(255,255,255,0.08);
-  --theme-primary: #1a1a1d; /* خلفية الكروت */
-  
-  /* 🎨 ألوان الأزرار المخصصة */
-  --btn-primary-start: #c0c0c0; /* سيلفر غامق */
-  --btn-primary-end: #8e8e8e; /* سيلفر فاتح */
-  --btn-private-start: #ffb84d; /* جولد */
-  --btn-private-end: #d8962a; /* جولد غامق */
-  --btn-text: #111;
-}
+        :root {
+            --bg-color: #0e0e11;
+            /* خلفية الصفحة */
+            --card-bg: #16161a;
+            /* لون الكروت */
+            --accent: #ffb84d;
+            /* لون ذهبي عام */
+            --accent-light: #ffe6a3;
+            /* فاتح للذهبي */
+            --text-main: #f5f5f5;
+            /* النص الأساسي */
+            --text-dim: #bfbfbf;
+            /* النص الثانوي */
+            --border-light: rgba(255, 255, 255, 0.08);
+            --theme-primary: #1a1a1d;
+            /* خلفية الكروت */
+
+            /* 🎨 ألوان الأزرار المخصصة */
+            --btn-primary-start: #c0c0c0;
+            /* سيلفر غامق */
+            --btn-primary-end: #8e8e8e;
+            /* سيلفر فاتح */
+            --btn-private-start: #ffb84d;
+            /* جولد */
+            --btn-private-end: #d8962a;
+            /* جولد غامق */
+            --btn-text: #111;
+        }
 
 
         /* الصفحة */
@@ -30,31 +41,82 @@
             font-family: "Cairo", sans-serif;
             margin: 0;
         }
-/* 🎨 تخصيص select في المودال */
-#startBookingModal .fancy-select {
-    background-color: #ffffff !important; /* خلفية بيضاء */
-    color: #ffffff !important; /* النص أبيض */
-    border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 10px;
-    padding: 10px;
-    font-weight: 600;
-    cursor: pointer;
-}
 
-/* 🩵 نص الاختيارات داخل القائمة */
-#startBookingModal .fancy-select option {
-    background-color: #222 !important; /* الخلفية الغامقة داخل القائمة */
-    color: #ffffff !important; /* النص أبيض */
-    font-weight: 600;
-    padding: 8px;
-}
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
 
-/* ✨ لما يفتح المستخدم القائمة */
-#startBookingModal .fancy-select:focus {
-    outline: none;
-    border-color: #ffb84d;
-    box-shadow: 0 0 8px rgba(255, 184, 77, 0.4);
-}
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #888;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4cd964;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        /* 🎨 تخصيص select في المودال */
+        #startBookingModal .fancy-select {
+            background-color: #ffffff !important;
+            /* خلفية بيضاء */
+            color: #ffffff !important;
+            /* النص أبيض */
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* 🩵 نص الاختيارات داخل القائمة */
+        #startBookingModal .fancy-select option {
+            background-color: #222 !important;
+            /* الخلفية الغامقة داخل القائمة */
+            color: #ffffff !important;
+            /* النص أبيض */
+            font-weight: 600;
+            padding: 8px;
+        }
+
+        /* ✨ لما يفتح المستخدم القائمة */
+        #startBookingModal .fancy-select:focus {
+            outline: none;
+            border-color: #ffb84d;
+            box-shadow: 0 0 8px rgba(255, 184, 77, 0.4);
+        }
 
         /* Container */
         .page-container {
@@ -125,6 +187,7 @@
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
             border-top: 4px solid rgba(217, 178, 173, 0.18);
             display: flex;
+            position: relative;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
@@ -154,6 +217,17 @@
             color: #ffffff;
             margin-left: 12px;
             white-space: nowrap;
+        }
+
+        .session-card.paid::after {
+            content: "✔";
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2ecc71;
+            /* أخضر */
         }
 
         /* Right Panel */
@@ -226,7 +300,7 @@
         }
 
 
-/* 🎯 عدّاد الجلسات الخاصة */
+        /* 🎯 عدّاد الجلسات الخاصة */
         .count-box {
             font-size: 15px;
             font-weight: 600;
@@ -236,42 +310,46 @@
             width: fit-content;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
-.count-box.private-box {
-  background: linear-gradient(135deg, #ffcc70, #ffb347);
-  color: #1a1a1a;
-  font-weight: 800;
-  padding: 16px;
-  border-radius: 12px;
-  text-align: center;
-  transition: all 0.25s ease;
-}
+
+        .count-box.private-box {
+            background: linear-gradient(135deg, #ffcc70, #ffb347);
+            color: #1a1a1a;
+            font-weight: 800;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
 
 
 
-/* Search (Hive Dark Style) */
-.search-box input {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border-light);
-  background: #1a1a1d; /* داكن زي خلفية الكروت */
-  color: var(--text-main);
-  transition: all 0.25s ease;
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
-}
+        /* Search (Hive Dark Style) */
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+            background: #1a1a1d;
+            /* داكن زي خلفية الكروت */
+            color: var(--text-main);
+            transition: all 0.25s ease;
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
+        }
 
-.search-box input::placeholder {
-  color: var(--text-dim);
-  opacity: 0.8;
-}
+        .search-box input::placeholder {
+            color: var(--text-dim);
+            opacity: 0.8;
+        }
 
-/* عند التركيز */
-.search-box input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 12px rgba(255, 184, 77, 0.4); /* إضاءة باللون البرتقالي */
-  background: #202024; /* تفتيح بسيط عند التركيز */
-}
+        /* عند التركيز */
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(255, 184, 77, 0.4);
+            /* إضاءة باللون البرتقالي */
+            background: #202024;
+            /* تفتيح بسيط عند التركيز */
+        }
 
         /* No results */
         .no-results {
@@ -299,6 +377,43 @@
             box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
             display: none;
             z-index: 9999;
+        }
+
+        /* ===== Modal ===== */
+        .modal-content {
+            background: #1a1a1f;
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            border-radius: 20px !important;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-light);
+            background: #202025;
+            color: var(--accent);
+            border-radius: 20px 20px 0 0 !important;
+        }
+
+        .modal-title {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .modal-body label {
+            font-weight: bold;
+            color: var(--text-main);
+        }
+
+        .modal-footer {
+            border-top: none;
+        }
+
+        .modal {
+            display: none;
+        }
+
+        .modal.show {
+            display: block;
         }
 
         /* Result items */
@@ -342,9 +457,11 @@
             text-overflow: ellipsis;
             max-width: 220px;
         }
-.space{
-  height: 40px;
-}
+
+        .space {
+            height: 40px;
+        }
+
         .result-item .result-phone {
             color: #ffffff;
             font-size: 13px;
@@ -453,110 +570,121 @@
 
 
         .modal-content {
-  background: var(--theme-primary);
-  color: var(--text-main);
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-}
+            background: var(--theme-primary);
+            color: var(--text-main);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
 
-.modal-header {
-  background: linear-gradient(135deg, #1d1d22, #121215);
-  border-bottom: 1px solid var(--border-light);
-  color: var(--accent);
-}
+        .modal-header {
+            background: linear-gradient(135deg, #1d1d22, #121215);
+            border-bottom: 1px solid var(--border-light);
+            color: var(--accent);
+        }
 
-.modal-header .modal-title {
-  font-weight: 700;
-  color: var(--accent);
-}
+        .modal-header .modal-title {
+            font-weight: 700;
+            color: var(--accent);
+        }
 
-.modal-body {
-  background: var(--theme-primary);
-}
+        .modal-body {
+            background: var(--theme-primary);
+        }
 
-.modal .form-label {
-  color: var(--text-main);
-  font-weight: 600;
-}
+        .modal .form-label {
+            color: var(--text-main);
+            font-weight: 600;
+        }
 
-.fancy-select-wrapper {
-  background: #1e1e23;
-  border: 1px solid var(--border-light);
-}
+        .fancy-select-wrapper {
+            background: #1e1e23;
+            border: 1px solid var(--border-light);
+        }
 
-.fancy-select {
-  color: var(--text-main);
-  background: transparent;
-}
+        .fancy-select {
+            color: var(--text-main);
+            background: transparent;
+        }
 
-.input-box {
-  background: #1a1a1d;
-  border: 1px solid var(--border-light);
-  color: var(--text-main);
-  padding: 10px 14px;
-  border-radius: 10px;
-}
+        .input-box {
+            background: #1a1a1d;
+            border: 1px solid var(--border-light);
+            color: var(--text-main);
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
 
-.alert-warning {
-  background: rgba(255, 184, 77, 0.1);
-  border: 1px solid rgba(255, 184, 77, 0.3);
-  color: var(--accent-light);
-}
+        .alert-warning {
+            background: rgba(255, 184, 77, 0.1);
+            border: 1px solid rgba(255, 184, 77, 0.3);
+            color: var(--accent-light);
+        }
 
-#estimateBanner {
-  background: rgba(255, 184, 77, 0.08);
-  color: var(--accent-light);
-  border: 1px solid var(--border-light);
-}
-
-
-/* close button */
-.btn-close {
-  filter: invert(1);
-  opacity: 0.8;
-}
-
-.btn-submit {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  color: #fff;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-}
-
-/* 🚀 زرار بدء الجلسة - سيلفر */
-.btn-submit.primary {
-  background: linear-gradient(135deg, var(--btn-primary-start), var(--btn-primary-end));
-  color: var(--btn-text);
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-.btn-submit.primary:hover {
-  background: linear-gradient(135deg, #d6d6d6, #a3a3a3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(255,255,255,0.15);
-}
-
-/* 🔒 زرار الجلسة الخاصة - جولد */
-.btn-submit.private {
-  background: linear-gradient(135deg, var(--btn-private-start), var(--btn-private-end));
-  color: var(--btn-text);
-  border: 1px solid rgba(255,255,255,0.15);
-}
-
-.btn-submit.private:hover {
-  background: linear-gradient(135deg, #ffd37a, #ffb84d);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(255,184,77,0.25);
-}
+        #estimateBanner {
+            background: rgba(255, 184, 77, 0.08);
+            color: var(--accent-light);
+            border: 1px solid var(--border-light);
+        }
 
 
+        /* close button */
+        .btn-close {
+            filter: invert(1);
+            opacity: 0.8;
+        }
 
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        /* 🚀 زرار بدء الجلسة - سيلفر */
+        .btn-submit.primary {
+            background: linear-gradient(135deg, var(--btn-primary-start), var(--btn-primary-end));
+            color: var(--btn-text);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-submit.primary:hover {
+            background: linear-gradient(135deg, #d6d6d6, #a3a3a3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(255, 255, 255, 0.15);
+        }
+
+        /* 🔒 زرار الجلسة الخاصة - جولد */
+        .btn-submit.private {
+            background: linear-gradient(135deg, var(--btn-private-start), var(--btn-private-end));
+            color: var(--btn-text);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-submit.private:hover {
+            background: linear-gradient(135deg, #ffd37a, #ffb84d);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(255, 184, 77, 0.25);
+        }
+
+        .paid-sessions {
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+
+        .session-card.paid {
+            border: 1px solid #ffd700;
+            background: rgba(255, 215, 0, 0.08);
+        }
+
+        .paid-list .session-card {
+            border-left: 4px solid #ffd700;
+        }
     </style>
 @endsection
 @section('page_title')
@@ -566,7 +694,7 @@
 @section('content')
 
     <div class="page-container">
-        
+
         <div class="counts-container">
             <div class="count-box">
                 الجلسات: {{ $sessions_count }}
@@ -580,13 +708,27 @@
         <div class="split">
             <!-- ====== اليسار: قائمة الجلسات ====== -->
             <div class="left">
+
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="ابحث بالاسم أو رقم الهاتف أو ID" class="input-box">
                 </div>
 
+                <!-- 🔥 الجلسات الأساسية -->
                 <div class="sessions-list" id="sessionsList">
                     <p class="text-center p-3">⏳ جاري التحميل...</p>
                 </div>
+
+                <!-- 💎 الجلسات المدفوعة (مميزة) -->
+                <div class="paid-sessions mt-3">
+                    <h4 style="color:#ffd700; margin-bottom:10px;">
+                        💎 الجلسات المدفوعة
+                    </h4>
+
+                    <div class="sessions-list paid-list" id="paidSessionsList">
+                        <p class="text-center p-3">⏳ جاري التحميل...</p>
+                    </div>
+                </div>
+
             </div>
 
             <!-- ====== اليمين: بطاقة إنشاء الجلسة مصغّرة ====== -->
@@ -611,7 +753,7 @@
                             <div class="error-msg">{{ $message }}</div>
                         @enderror
                     </div>
-<div class="space"></div>
+                    <div class="space"></div>
                     <div class="form-group">
                         <label for="name">اسم العميل</label>
                         <input type="text" id="name" name="name" class="input-box" placeholder="اسم العميل"
@@ -620,6 +762,10 @@
                             <div class="error-msg">{{ $message }}</div>
                         @enderror
                     </div>
+                    <input type="hidden" name="payment_type" id="payment_type">
+                    <input type="hidden" name="totalPayed" id="totalPayed">
+
+
 
                     <div class="form-group">
                         <label>عدد الأشخاص</label>
@@ -630,16 +776,27 @@
                         </div>
                         <input type="hidden" id="personsInput" name="persons" value="1">
                     </div>
+                    <label class="mb-2">دفع عند الدخول</label>
+
+
+
+                    <label class="switch">
+                        <input type="checkbox" name="isPayed" id="isPayedToggle" value="1">
+                        <span class="slider round"></span>
+                    </label>
 
                     <div class="d-flex gap-2" style="flex-wrap:wrap;">
-                      <button type="submit" class="btn-submit primary" style="flex:1; min-width:140px;">
-  🚀 بدء الجلسة
-</button>
+                        <input type="hidden" name="totalPrice" id="totalPriceInput" value="0">
 
-<button type="button" id="openPrivateBtn" class="btn-submit private"
-  style="flex:1; min-width:140px;" data-bs-toggle="modal" data-bs-target="#startBookingModal">
-  🔒 بدء جلسة خاصة
-</button>
+
+                        <button type="submit" class="btn-submit primary" style="flex:1; min-width:140px;">
+                            🚀 بدء الجلسة
+                        </button>
+
+                        <button type="button" id="openPrivateBtn" class="btn-submit private"
+                            style="flex:1; min-width:140px;" data-bs-toggle="modal" data-bs-target="#startBookingModal">
+                            🔒 بدء جلسة خاصة
+                        </button>
 
                     </div>
                 </form>
@@ -652,7 +809,151 @@
     </div>
 
     @include('session.modal.start-booking')
+    @include('session.modal.active_sub_modal')
+    <!-- مودال اختيار طريقة الدفع -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="text-align:center; padding:20px;">
 
+                <h4>💰 اختر طريقة الدفع</h4>
+
+                <input type="hidden" id="payment_type" name="payment_type">
+
+                <div class="d-flex justify-content-around mt-4">
+                    <button type="button" class="btn btn-success" onclick="choosePayment('cash')">💵 كاش</button>
+                    <button type="button" class="btn btn-primary" onclick="choosePayment('digital')">💳 ديجيتال</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedBlackList = {
+            blocked: false,
+            reason: ''
+        };
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const miniForm = document.getElementById("miniSessionForm");
+            const toggle = document.getElementById("isPayedToggle");
+            const personsInput = document.getElementById("personsInput");
+            const personsCountEl = document.getElementById("personsCount");
+            const totalPriceInput = document.getElementById("totalPriceInput");
+            const paymentTypeInput = document.getElementById("payment_type");
+            const fullDayPrice = Number(@json($fullDayPrice ?? 0));
+
+            // المودال
+            const paymentModalEl = document.getElementById("paymentModal");
+            const paymentModal = new bootstrap.Modal(paymentModalEl);
+
+            // Snackbar
+            const snackbar = document.createElement("div");
+            snackbar.style.position = "fixed";
+            snackbar.style.bottom = "20px";
+            snackbar.style.left = "20px";
+            snackbar.style.background = "#2ecc71";
+            snackbar.style.color = "#fff";
+            snackbar.style.padding = "15px 20px";
+            snackbar.style.borderRadius = "12px";
+            snackbar.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+            snackbar.style.fontSize = "16px";
+            snackbar.style.zIndex = "99999";
+            snackbar.style.display = "none";
+            snackbar.style.transition = "all 0.3s ease";
+            document.body.appendChild(snackbar);
+
+
+            //  حساب التوتال
+            const calculateTotal = () => {
+                const persons = Number(personsInput.value || 1);
+                return persons * (fullDayPrice + 5);
+            };
+
+            // تحديث التوتال + التحكم في السناك بار
+            const updateTotal = () => {
+                if (!toggle.checked) {
+                    totalPriceInput.value = 0;
+                    snackbar.style.display = "none";
+                    return;
+                }
+
+                const total = calculateTotal();
+                totalPriceInput.value = total;
+
+                snackbar.textContent = `💰 توتال الجلسة: ${total} جنيه`;
+                snackbar.style.display = "block";
+            };
+
+
+            // زرار زيادة الأشخاص
+            document.getElementById("increasePersons").addEventListener("click", () => {
+                let count = Number(personsInput.value) + 1;
+                personsInput.value = count;
+                personsCountEl.textContent = count;
+
+                updateTotal();
+            });
+
+            // زرار تقليل الأشخاص
+            document.getElementById("decreasePersons").addEventListener("click", () => {
+                let count = Number(personsInput.value);
+                if (count > 1) count--;
+                personsInput.value = count;
+                personsCountEl.textContent = count;
+
+                updateTotal();
+            });
+
+            // تشغيل وإيقاف "دفع عند الدخول"
+            toggle.addEventListener("change", () => {
+                updateTotal();
+            });
+
+
+            // اختيار طريقة الدفع
+            window.choosePayment = function(type) {
+                paymentTypeInput.value = type;
+                document.getElementById("totalPayed").value = totalPriceInput.value;
+                paymentModal.hide();
+                miniForm.submit();
+            };
+
+            // عند إرسال الفورم
+            miniForm.addEventListener("submit", (e) => {
+                updateTotal(); // تحديث التوتال
+
+                if (toggle.checked) {
+                    e.preventDefault();
+                    paymentModal.show();
+                } else {
+                    paymentTypeInput.value = "";
+                }
+            });
+
+            // تحديث أولي
+            updateTotal();
+
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            @if (session('client_has_active_sub'))
+                console.log("فتح المودال");
+                var modalEl = document.getElementById('activeSubModal');
+                if (modalEl) {
+                    var modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
+            @endif
+        });
+    </script>
 
     <!-- ====== السكربت: دمج وظائف البحث والعداد مع جلب الجلسات ====== -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -722,7 +1023,9 @@
             stateId.currentResults.forEach((it, i) => {
                 const id = _escapeHtml(it.id);
                 const phonePart = it.phone ? ' - ' + _escapeHtml(it.phone) : '';
-                html += `<div id="id_res_${i}" class="${ID_CONFIG.resultsItemClass}" data-index="${i}" data-id="${_escapeHtml(it.id)}" data-name="${_escapeHtml(it.name||'')}" data-phone="${_escapeHtml(it.phone||'')}">
+                html += `<div id="id_res_${i}" class="${ID_CONFIG.resultsItemClass}" data-index="${i}" data-id="${_escapeHtml(it.id)}" data-name="${_escapeHtml(it.name||'')}" data-phone="${_escapeHtml(it.phone||'')}"
+data-blacklisted="${it.is_blacklisted ? 1 : 0}"
+data-reason="${_escapeHtml(it.blacklist_reason || '')}">
             <div style="display:flex;justify-content:space-between;gap:8px;padding:8px;">
               <div><strong>${_escapeHtml(it.name||'-')}</strong> ${phonePart}</div>
               <div style="opacity:0.7">#${id}</div>
@@ -756,6 +1059,39 @@
             $('#phone').val(it.phone || '');
             $('#name').val(it.name || '');
             $('#clientIdInput').val(it.id || '');
+            selectedBlackList = {
+
+                blocked: !!it.is_blacklisted,
+
+                reason: it.blacklist_reason || ''
+
+            };
+
+            if (selectedBlackList.blocked) {
+
+                Swal.fire({
+
+                    icon: 'warning',
+
+                    title: '🚫 العميل محظور',
+
+                    html: `
+            <div style="text-align:right">
+
+                <b>سبب الحظر</b>
+
+                <br><br>
+
+                ${selectedBlackList.reason}
+
+            </div>
+        `,
+
+                    confirmButtonText: 'حسناً'
+
+                });
+
+            }
             clearIdResults();
             // لو عايز تغلق الفوكس:
             try {
@@ -851,7 +1187,7 @@
             // --- عناصر الواجهة ---
             const searchInput = document.getElementById('searchInput');
             const sessionsList = document.getElementById('sessionsList');
-
+            const paidSessionsList = document.getElementById('paidSessionsList');
             // روابط الراوتس
             const showRoute = @json(route('session.show', ':id'));
             const searchRoute = @json(route('sessions.search'));
@@ -872,10 +1208,14 @@
                 const clientPhone = session.client ? safeText(session.client.phone) : '-';
                 const persons = session.persons ?? 0;
                 return `
-            <div class="session-card" role="button" data-id="${session.id}">
+        <div class="session-card ${session.isPayed == 1 ? 'paid' : ''}" 
+     role="button" data-id="${session.id}">
+
                 <div class="info" style="text-align:right;">
                     <h3>${clientName}</h3>
                     <p>📞 ${clientPhone}</p>
+                  
+
                 </div>
                 <div class="persons">الأشخاص: ${persons}</div>
             </div>
@@ -892,35 +1232,75 @@
 
             async function fetchSessions(q = '') {
                 showLoading();
+
                 try {
                     const url = new URL(searchRoute, location.origin);
                     if (q) url.searchParams.append('query', q);
+
                     const res = await fetch(url.toString(), {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
-                    if (!res.ok) throw new Error('Network response was not ok');
+
                     const data = await res.json();
                     const items = Array.isArray(data) ? data : (data.data ?? []);
 
-                    if (!items || items.length === 0) {
+                    if (!items.length) {
                         showNoResults();
                         return;
                     }
-                    sessionsList.innerHTML = '';
+
+                    // 🔥 تفريق البيانات
+                    const normal = [];
+                    const paid = [];
+
                     items.forEach(s => {
-                        sessionsList.insertAdjacentHTML('beforeend', renderSessionCard(s));
+                        if (s.isPayed == 1) {
+                            paid.push(s);
+                        } else {
+                            normal.push(s);
+                        }
                     });
 
-                    // ربط النقر على البطاقة للانتقال للصفحة التفصيلية
-                    sessionsList.querySelectorAll('.session-card').forEach(card => {
+                    // =========================
+                    // 🟢 الجلسات الأساسية
+                    // =========================
+                    sessionsList.innerHTML = '';
+
+                    if (normal.length === 0) {
+                        sessionsList.innerHTML = `<p class="no-results">❌ لا توجد جلسات</p>`;
+                    } else {
+                        normal.forEach(s => {
+                            sessionsList.insertAdjacentHTML('beforeend', renderSessionCard(s));
+                        });
+                    }
+
+                    // =========================
+                    // 💎 الجلسات المدفوعة
+                    // =========================
+                    paidSessionsList.innerHTML = '';
+
+                    if (paid.length === 0) {
+                        paidSessionsList.innerHTML = `<p class="no-results">❌ لا توجد جلسات مدفوعة</p>`;
+                    } else {
+                        paid.forEach(s => {
+                            paidSessionsList.insertAdjacentHTML(
+                                'beforeend',
+                                renderSessionCard(s)
+                            );
+                        });
+                    }
+
+                    // rebind clicks
+                    document.querySelectorAll('.session-card').forEach(card => {
                         card.addEventListener('click', () => {
                             const id = card.dataset.id;
                             if (!id) return;
                             window.location.href = showRoute.replace(':id', id);
                         });
                     });
+
                 } catch (err) {
                     console.error(err);
                     sessionsList.innerHTML = `<p class="no-results">حدث خطأ أثناء جلب الجلسات</p>`;
@@ -974,7 +1354,9 @@
                 let html = '';
                 state.currentResults.forEach((it, i) => {
                     html +=
-                        `<div id="phone_res_${i}" class="${CONFIG.resultsItemClass}" data-index="${i}" data-id="${escapeHtml(it.id)}" data-name="${escapeHtml(it.name||'')}" data-phone="${escapeHtml(it.phone||'')}"><span>${escapeHtml(it.name)} ${it.phone ? ' - ' + escapeHtml(it.phone) : ''}</span></div>`;
+                        `<div id="phone_res_${i}" class="${CONFIG.resultsItemClass}" data-index="${i}" data-id="${escapeHtml(it.id)}" data-name="${escapeHtml(it.name||'')}" data-phone="${escapeHtml(it.phone||'')}"
+data-blacklisted="${it.is_blacklisted ? 1 : 0}"
+data-reason="${escapeHtml(it.blacklist_reason || '')}"><span>${escapeHtml(it.name)} ${it.phone ? ' - ' + escapeHtml(it.phone) : ''}</span></div>`;
                 });
                 $c.html(html).show();
             }
@@ -986,11 +1368,50 @@
             }
 
             function pickResult(idx) {
+
                 const it = state.currentResults[idx];
+
                 if (!it) return false;
+
                 $(CONFIG.searchInput).val(it.phone || it.id || '');
-                if (CONFIG.nameField) $(CONFIG.nameField).val(it.name || '');
+
+                if (CONFIG.nameField)
+                    $(CONFIG.nameField).val(it.name || '');
+
+                selectedBlackList = {
+
+                    blocked: !!it.is_blacklisted,
+
+                    reason: it.blacklist_reason || ''
+
+                };
+
+                if (selectedBlackList.blocked) {
+
+                    Swal.fire({
+
+                        icon: 'warning',
+
+                        title: '🚫 العميل محظور',
+
+                        html: `
+                <div style="text-align:right">
+                    <b>سبب الحظر</b>
+
+                    <br><br>
+
+                    ${selectedBlackList.reason}
+                </div>
+            `,
+
+                        confirmButtonText: 'حسناً'
+
+                    });
+
+                }
+
                 clearResults();
+
                 return true;
             }
 
@@ -1091,7 +1512,66 @@
 
             miniForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
+                if (selectedBlackList.blocked) {
 
+                    const result = await Swal.fire({
+
+                        icon: 'warning',
+
+                        title: '🚫 هذا العميل محظور',
+
+                        html: `
+            <div style="text-align:right">
+
+                <p>
+
+                    هذا العميل موجود فى القائمة السوداء.
+
+                </p>
+
+                <p>
+
+                    <b>سبب الحظر:</b>
+
+                </p>
+
+                <div style="
+                    background:#fff3cd;
+                    padding:10px;
+                    border-radius:8px;
+                    margin-top:10px;
+                ">
+
+                    ${selectedBlackList.reason}
+
+                </div>
+
+                <br>
+
+                <h5 style="color:red">
+
+                    هل تريد إكمال العملية؟
+
+                </h5>
+
+            </div>
+        `,
+
+                        showCancelButton: true,
+
+                        confirmButtonText: 'نعم',
+
+                        cancelButtonText: 'إلغاء',
+
+                        confirmButtonColor: '#d33'
+
+                    });
+
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                }
                 const formData = new FormData(miniForm);
                 const tokenMeta = document.querySelector('meta[name="csrf-token"]');
                 const headers = tokenMeta ? {
@@ -1316,7 +1796,9 @@
                     const id = CONFIG.resultIdPrefix + i;
                     const clientId = escapeHtml(it.id);
                     const phonePart = it.phone ? ' - ' + escapeHtml(it.phone) : '';
-                    html += `<div id="${id}" class="${CONFIG.resultsItemClass}" data-index="${i}" data-id="${escapeHtml(it.id)}" data-name="${escapeHtml(it.name||'')}" data-phone="${escapeHtml(it.phone||'')}">
+                    html += `<div id="${id}" class="${CONFIG.resultsItemClass}" data-index="${i}" data-id="${escapeHtml(it.id)}" data-name="${escapeHtml(it.name||'')}" data-phone="${escapeHtml(it.phone||'')}"
+data-blacklisted="${it.is_blacklisted ? 1 : 0}"
+data-reason="${escapeHtml(it.blacklist_reason || '')}">
                <div class="result-main">
                  <span class="result-name">${escapeHtml(it.name)}</span>
                  <span class="result-phone">${phonePart}</span>
@@ -1934,5 +2416,6 @@
             }); // ready
         })(jQuery);
     </script>
+
 
 @endsection

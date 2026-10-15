@@ -76,7 +76,21 @@
 
                         <div class="content-right">
                             <span class="date small">🕒 {{ $plan->created_at->diffForHumans() }}</span>
-                            <!-- أزرار تعديل / حذف ممكن تضيفها هنا -->
+                            <div class="actions-group mt-3">
+                                <button type="button" class="btn-action btn-edit"
+                                    onclick="openEditPlanModal({{ json_encode($plan) }})">
+                                    ✏️ تعديل
+                                </button>
+                                <form action="{{ route('subscription-plan.destroy', $plan->id) }}" method="POST"
+                                    onsubmit="return confirm('⚠️ هل أنت متأكد من حذف خطة ({{ $plan->name }})؟\nفي حال وجود اشتراكات نشطة سابقة يفضل تعديل السعر فقط.');"
+                                    style="display: inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-action btn-delete">
+                                        🗑️ حذف
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 @empty
@@ -85,6 +99,67 @@
             </div>
         </div>
     </div>
+
+    <!-- مودال تعديل خطة الاشتراك -->
+    <div class="modal fade" id="editPlanModal" tabindex="-1" aria-labelledby="editPlanModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 18px; border: 1px solid var(--accent); background: #ffffff;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="editPlanModalLabel" style="color: #333;">✏️ تعديل خطة الاشتراك وتحديث السعر</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                </div>
+                <form id="editPlanForm" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body pt-3">
+                        <div class="form-group mb-3">
+                            <label class="fw-bold">اسم الخطة <small class="text-muted">(مثال: أسبوعي - شهري)</small></label>
+                            <input type="text" name="name" id="edit_name" class="form-control styled-input" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="fw-bold">السعر الجديد (جنيه) <small class="text-success fw-bold">★ السعر المحدث</small></label>
+                            <input type="number" step="0.01" name="price" id="edit_price" class="form-control styled-input" min="0" required style="border-color: #28a745; font-size: 1.15rem; font-weight: bold;">
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="fw-bold">عدد الزيارات المسموح بها</label>
+                            <input type="number" name="visits_count" id="edit_visits_count" class="form-control styled-input" min="1" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="fw-bold">مدة الأيام المسموح بها</label>
+                            <input type="number" name="duration_days" id="edit_duration_days" class="form-control styled-input" min="1" required>
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label class="fw-bold">اسم المُضيف / المُسجل <small class="text-muted">(اختياري)</small></label>
+                            <input type="text" name="setter_name" id="edit_setter_name" class="form-control styled-input">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" style="background: var(--accent); color: #333; border: none; border-radius: 10px; font-weight: 700; padding: 8px 24px;">💾 حفظ التعديلات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openEditPlanModal(plan) {
+            const form = document.getElementById('editPlanForm');
+            form.action = "{{ url('/managment-subscription-plans') }}/" + plan.id;
+            document.getElementById('edit_name').value = plan.name;
+            document.getElementById('edit_price').value = plan.price;
+            document.getElementById('edit_visits_count').value = plan.visits_count;
+            document.getElementById('edit_duration_days').value = plan.duration_days;
+            document.getElementById('edit_setter_name').value = plan.setter_name || '';
+
+            const modal = new bootstrap.Modal(document.getElementById('editPlanModal'));
+            modal.show();
+        }
+    </script>
 @endsection
 
 @section('style')
@@ -355,6 +430,67 @@
                 min-width: 70px;
                 font-size: 12px;
             }
+        }
+
+        .actions-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-edit {
+            background: #e6c7ff;
+            color: #2c2c2c;
+            border: 1px solid #d4a5fa;
+        }
+
+        .btn-edit:hover {
+            background: #d8aaff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(216, 170, 255, 0.4);
+        }
+
+        .btn-delete {
+            background: #ffe5e5;
+            color: #d32f2f;
+            border: 1px solid #ffcccc;
+        }
+
+        .btn-delete:hover {
+            background: #ffcdd2;
+            color: #b71c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 100, 100, 0.25);
+        }
+
+        .styled-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .styled-input:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 8px rgba(230, 199, 255, 0.5);
         }
     </style>
 @endsection

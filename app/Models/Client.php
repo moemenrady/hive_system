@@ -70,4 +70,20 @@ class Client extends Model
   {
     return $this->belongsTo(EducationStage::class, 'education_stage_id');
   }
+  public function blackLists()
+  {
+    return $this->hasMany(BlackList::class);
+  }
+
+  public function activeBlackList()
+  {
+    return $this->hasOne(BlackList::class)
+      ->where('is_active', true)
+      ->latestOfMany();
+  }
+
+  public function getIsBlackListedAttribute()
+  {
+    return $this->activeBlackList()->exists();
+  }
 }

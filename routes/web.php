@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ApiSystemActionController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\SystemActionController;
 use Illuminate\Support\Facades\Route;
@@ -33,13 +34,6 @@ Route::middleware('auth')->group(function () {
   Route::get('/dashboard', function () {
     return view('dashboard');
   })->middleware(['auth', 'verified',])->name('dashboard')->middleware("admin");
-
-  Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-  Route::get('/profile', [ProfileController::class, 'create'])->name('history.index');
-  Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-  Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-
 });
 
 Route::get('/error', function (Request $request) {
@@ -61,9 +55,19 @@ require __DIR__ . '/clients.php';
 require __DIR__ . '/expenses.php';
 require __DIR__ . '/sales.php';
 require __DIR__ . '/sessions.php';
+require __DIR__ . '/setion_not_added.php';
 require __DIR__ . '/main.php';
 require __DIR__ . '/halls.php';
 require __DIR__ . '/analytics.php';
 require __DIR__ . '/daily.php';
 require __DIR__ . '/invoices.php';
-
+require __DIR__ . '/client_site.php';
+require __DIR__ . '/ingredient.php';
+require __DIR__ . '/products_recipe.php';
+require __DIR__ . '/category.php';
+require __DIR__ . '/notifications.php';
+require __DIR__ . '/employees.php';
+require __DIR__ . '/employee_transactions.php';
+require __DIR__ . '/supervisor.php';
+require __DIR__ . '/black-list.php';
+require __DIR__ . '/print.php';

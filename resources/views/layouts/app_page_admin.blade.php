@@ -12,7 +12,6 @@
     </title>
     @yield('style')
     <style>
-
         /* مساحة افتراضية أعلى الصفحة (يتم تحديثها ديناميكياً بالـ JS) */
         :root {
             --top-offset: 72px;
@@ -128,12 +127,20 @@
             });
         </script>
     @endif
+    @if (Auth::user()->role === 'admin')
+        {{-- زر الرجوع للرئيسيه --}}
+        <form action="{{ route('managment.create') }}">
+            <button class="back-btn">الإدارة</button>
 
-    {{-- زر الرجوع للرئيسيه --}}
-    <form action="{{ route('managment.create') }}">
-        <button class="back-btn">الإدارة</button>
+        </form>
+    @else
+        {{-- زر الرجوع للرئيسيه --}}
+        <form action="{{ route('main.create') }}">
+            <button class="back-btn">الرئيسية</button>
 
-    </form>
+        </form>
+    @endif
+
 
     @yield('content')
 

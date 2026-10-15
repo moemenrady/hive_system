@@ -47,7 +47,7 @@
             const list = document.getElementById('subscriptionList');
 
             const showRoute = @json(route('subscriptions.show', ':id'));
-            const searchRoute = @json(route('subscriptions.ajaxSearch'));
+            const searchRoute = @json(route('subscriptions.ajaxSearchManager'));
 
             function debounce(fn, delay = 300) {
                 let t;

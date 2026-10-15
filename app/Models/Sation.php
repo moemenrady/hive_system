@@ -11,6 +11,7 @@ class Sation extends Model
     'start_time',
     'persons',
     'end_time',
+    'isPayed',
     'status',
   ];
 
@@ -18,14 +19,14 @@ class Sation extends Model
   public function client()
   {
     return $this->belongsTo(Client::class, 'client_id');
-
   }
 
-  public function purchases() {
+  public function purchases()
+  {
     return $this->hasMany(SessionPurchase::class);
-}
-public function scopeActive($query)
-    {
-        return $query->where('status', 'active');
-    }
+  }
+  public function scopeActive($query)
+  {
+    return $query->where('status', 'active');
+  }
 }

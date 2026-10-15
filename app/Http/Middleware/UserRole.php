@@ -13,8 +13,9 @@ class UserRole
 
   public function handle(Request $request, Closure $next): Response
   {
-    if (Auth::user()->role === 'admin')
+    if (Auth::user()->role === 'admin'|| Auth::user()->role === 'supervisor') {
       return $next($request);
+    }
     return response()->json(['message' => 'Unauthorized'], 403);
 
 

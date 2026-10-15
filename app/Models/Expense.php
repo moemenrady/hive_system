@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Expense extends Model
 {
-  protected $fillable = ['expense_type_id', 'amount', 'note', 'added_by'];
+  protected $fillable = ['expense_type_id', 'amount', 'note', 'added_by',    'created_at',];
   public function type()
   {
     return $this->belongsTo(ExpenseType::class, 'expense_type_id');

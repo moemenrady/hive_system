@@ -10,13 +10,14 @@ class ShiftAction extends Model
         'shift_id',
         'action_type',
         'invoice_id',
+        'expense_type_id', // 👈 مهم
         'amount',
         'expense_amount',
+        'payment_type',
         'expense_draft_id', // تأكد أنه موجود هنا
         'notes',
     ];
-     protected $table = 'shift_actions';
-    protected $guarded = [];
+    protected $table = 'shift_actions';
 
     public function shift()
     {
@@ -25,12 +26,16 @@ class ShiftAction extends Model
 
     public function invoice()
     {
-        return $this->belongsTo(Invoice::class,'invoice_id');
+        return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 
     // الاسم الصحيح للعلاقة
     public function expenseDraft()
     {
         return $this->belongsTo(ExpenseDraft::class, 'expense_draft_id');
+    }
+    public function expenseType()
+    {
+        return $this->belongsTo(ExpenseType::class, 'expense_type_id');
     }
 }

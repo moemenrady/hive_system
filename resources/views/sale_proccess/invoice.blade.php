@@ -1,11 +1,11 @@
-<!-- resources/views/invoice.blade.php -->
+<!-- resources/views/sale_proccess/invoice.blade.php -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta charset="UTF-8">
-    <title>الفاتورة</title>
+    <title>إتمام الفاتورة</title>
     <style>
         :root {
             --bg-start: #fdfdfd;
@@ -26,12 +26,10 @@
             padding: 0;
             font-family: "Tahoma", sans-serif;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             background: linear-gradient(to bottom, var(--bg-start), var(--bg-end));
             color: #222;
         }
 
-        /* صفحة كاملة */
         .page {
             min-height: 100vh;
             display: flex;
@@ -49,7 +47,6 @@
             text-align: center;
         }
 
-        /* زرّ الرجوع (كما عندك) */
         .back-btn {
             position: fixed;
             top: 20px;
@@ -60,37 +57,28 @@
             cursor: pointer;
             transition: transform 0.2s;
             z-index: 2000;
+            border: none;
+            font-weight: bold;
         }
 
-        /* الحاوية الرئيسية */
         .invoice-container {
             width: 100%;
             max-width: 1100px;
             background: var(--card-bg);
             border-radius: 12px;
             box-shadow: var(--card-shadow);
-            overflow: visible;
             padding: 20px;
             box-sizing: border-box;
-            position: relative;
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        /* رأس الفاتورة: الإجمالي + عنوان */
         .invoice-header {
             display: flex;
             gap: 12px;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
 
         .summary {
@@ -98,28 +86,12 @@
             padding: 10px 22px;
             border-radius: 25px;
             font-weight: bold;
-            align-self: flex-start;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
-        .invoice-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            align-items: flex-end;
-            min-width: 160px;
-        }
-
-        .invoice-meta .small {
-            color: var(--muted);
-            font-size: 13px;
-        }
-
-        /* جدول الفاتورة (ديسكتوب) */
+        /* الجدول للديسكتوب */
         .table-wrapper {
             width: 100%;
-            box-sizing: border-box;
-            overflow: hidden;
             border-radius: 8px;
             border: 1px solid rgba(0, 0, 0, 0.06);
         }
@@ -127,27 +99,18 @@
         table.invoice-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
-            min-width: 520px;
         }
 
-        table.invoice-table thead th {
+        table.invoice-table th {
             padding: 12px 10px;
-            text-align: center;
-            font-weight: 700;
-            background: rgba(250, 250, 250, 0.98);
-            position: sticky;
-            top: 0;
-            z-index: 3;
+            background: #fafafa;
             border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
 
-        table.invoice-table tbody td {
+        table.invoice-table td {
             padding: 12px 10px;
             text-align: center;
-            vertical-align: middle;
             border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-            word-break: break-word;
         }
 
         td.total {
@@ -155,32 +118,10 @@
             font-weight: 700;
         }
 
-        /* Scrollable tbody technique */
-        .invoice-table thead,
-        .invoice-table tbody,
-        .invoice-table tr {
-            display: block;
-        }
-
-        .invoice-table tbody {
-            max-height: 48vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        .invoice-table tr {
-            display: table;
-            table-layout: fixed;
-            width: 100%;
-        }
-
-        /* كروت الأصناف (مخفية افتراضياً، تظهر فقط على الموبايل) */
+        /* الكروت للموبايل */
         .cards-wrapper {
             display: none;
-            /* افتراضي - لا تظهر على الديسكتوب */
             width: 100%;
-            box-sizing: border-box;
-            grid-template-columns: 1fr;
             gap: 12px;
         }
 
@@ -196,54 +137,16 @@
             border: 1px solid rgba(0, 0, 0, 0.04);
         }
 
-        .item-left {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            min-width: 0;
-        }
-
         .item-badge {
             background: rgba(0, 0, 0, 0.06);
             border-radius: 10px;
-            padding: 8px 10px;
+            padding: 8px;
             font-weight: 700;
-            min-width: 48px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .item-details {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 0;
         }
 
         .item-name {
             font-weight: 800;
             font-size: 15px;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            direction: rtl;
-        }
-
-        .item-meta {
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        .item-right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 6px;
-            min-width: 88px;
-        }
-
-        .item-price {
-            font-weight: 700;
         }
 
         .item-total {
@@ -251,21 +154,110 @@
             font-weight: 800;
         }
 
-        /* تفاصيل الفوتر/أزرار */
-        .action-bar {
-            width: 100%;
+        /* قسم الإجماليات والخصم الاحترافي */
+        .totals-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 10px;
             display: flex;
-            gap: 10px;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 6px;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            max-width: 350px;
+            align-self: flex-end;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-sizing: border-box;
         }
 
-        .action-left,
-        .action-right {
+        .total-row {
             display: flex;
-            gap: 10px;
+            justify-content: space-between;
             align-items: center;
+            font-size: 15px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .discount-row {
+            color: var(--accent1);
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .discount-controls {
+            display: flex;
+            width: 100%;
+            gap: 8px;
+        }
+
+        .discount-select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            background: #fff;
+            flex: 1;
+            transition: 0.2s;
+        }
+
+        .discount-select:focus {
+            border-color: var(--accent1);
+        }
+
+        .discount-input {
+            width: 80px;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--accent1);
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .discount-input:focus {
+            border-color: var(--accent1);
+            box-shadow: 0 0 0 3px rgba(255, 65, 108, 0.15);
+        }
+
+        .discount-reason {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            box-sizing: border-box;
+            transition: 0.2s;
+        }
+
+        .discount-reason:focus {
+            border-color: var(--accent1);
+            outline: none;
+        }
+
+        .net-total-row {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--success);
+            border-top: 1px dashed #ccc;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        /* الأزرار */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
         }
 
         button {
@@ -275,7 +267,7 @@
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.25s ease-in-out;
+            transition: 0.25s;
         }
 
         .btn-cancel {
@@ -283,169 +275,96 @@
             color: white;
         }
 
-        .btn-print {
-            background: #fcefb1;
-            color: #333;
-        }
-
         .btn-done {
             background: linear-gradient(135deg, var(--accent1), var(--accent2));
-            width: 220px;
             color: white;
             font-size: 16px;
             font-weight: 800;
-            border: none;
             border-radius: 50px;
             padding: 13px 26px;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1.6px;
-            transition: all 0.35s ease-in-out;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 15px rgba(255, 65, 108, 0.6), 0 0 30px rgba(255, 75, 43, 0.35);
+            box-shadow: 0 0 15px rgba(255, 65, 108, 0.6);
         }
 
         .btn-done:hover {
-            transform: scale(1.06) rotate(-1deg);
-            box-shadow: 0 0 25px rgba(255, 65, 108, 0.95), 0 0 50px rgba(255, 75, 43, 0.6);
+            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(255, 65, 108, 0.9);
         }
 
-        .btn-done::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -75%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
-            transform: skewX(-25deg);
-        }
-
-        .btn-done:hover::before {
-            animation: shine 0.9s forwards;
-        }
-
-        @keyframes shine {
-            0% {
-                left: -75%;
-            }
-
-            100% {
-                left: 125%;
-            }
-        }
-
-        /* شريط أزرار ثابت في أسفل الموبايل */
         .sticky-actions-mobile {
             display: none;
         }
 
-        /* طباعة */
-        @media print {
-            body {
-                background: white;
-            }
-
-            .action-bar,
-            .sticky-actions-mobile {
-                display: none !important;
-            }
-
-            .invoice-container {
-                box-shadow: none;
-                border-radius: 0;
-                padding: 6px;
-            }
-
-            table.invoice-table thead th {
-                position: static;
-            }
-
-            .invoice-table tbody {
-                max-height: none;
-                overflow: visible;
-                display: table-row-group;
-            }
-
-            .invoice-table thead,
-            .invoice-table tbody,
-            .invoice-table tr {
-                display: table;
-                width: 100%;
-            }
-
-            /* كروت لا تظهر في الطباعة */
-            .cards-wrapper {
-                display: none !important;
-            }
+        /* المودلز */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            backdrop-filter: blur(5px);
         }
 
-        /* --- Responsive behavior --- */
-        @media (max-width: 900px) {
-            .invoice-container {
-                padding: 14px;
-            }
-
-            .invoice-table tbody {
-                max-height: 40vh;
-            }
-
-            .btn-done {
-                width: 180px;
-                font-size: 15px;
-            }
-
-            .invoice-meta {
-                min-width: 120px;
-            }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
         }
 
-        /* MOBILE: show cards, hide table */
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .pay-btn {
+            padding: 20px;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+
+        .pay-btn:hover {
+            border-color: var(--accent1);
+            background: #fff5f6;
+        }
+
+        .btn-close-modal {
+            margin-top: 20px;
+            background: none;
+            color: #888;
+            text-decoration: underline;
+        }
+
         @media (max-width: 640px) {
-            .invoice-container {
-                padding: 12px;
-                border-radius: 10px;
-            }
 
-            h2.page-title {
-                font-size: 18px;
-            }
-
-            .invoice-header {
-                align-items: flex-start;
-                gap: 8px;
-            }
-
-            .summary {
-                position: static;
-                align-self: stretch;
-                display: inline-block;
-                width: auto;
-                margin-bottom: 6px;
-            }
-
-            /* على الموبايل: اخفي الجدول واظهر الكروت */
-            table.invoice-table {
-                display: none;
-            }
-
-            .table-wrapper {
-                display: none;
-            }
-
-            /* هنا نظهر الكروت (فقط على الموبايل) */
-            .cards-wrapper {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
+            .table-wrapper,
             .action-bar {
                 display: none;
             }
 
-            /* show sticky bottom actions for mobile */
+            .cards-wrapper {
+                display: grid;
+                grid-template-columns: 1fr;
+                padding-bottom: 15px;
+            }
+
+            .totals-section {
+                max-width: 100%;
+                margin-bottom: 80px;
+                align-self: center;
+            }
+
             .sticky-actions-mobile {
                 display: flex;
                 position: fixed;
@@ -455,24 +374,13 @@
                 padding: 10px;
                 gap: 8px;
                 justify-content: center;
-                background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98));
+                background: white;
                 box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
                 z-index: 60;
             }
 
             .sticky-actions-mobile .btn-done {
-                width: calc(100% - 28px);
-                max-width: 620px;
-            }
-
-            /* اجعل قائمة الكروت لا تتغطى بالشريط السفلي */
-            .cards-wrapper {
-                padding-bottom: 82px;
-                /* مساحة للشريط الثابت */
-            }
-
-            .invoice-table tbody {
-                max-height: calc(48vh - 56px);
+                width: 100%;
             }
         }
     </style>
@@ -480,77 +388,72 @@
 
 <body>
     <div class="page">
-        <h2 class="page-title">الفاتورة</h2>
+        <h2 class="page-title">إتمام عملية البيع</h2>
 
-        {{-- زر الرجوع للرئيسيه --}}
         <form action="{{ route('main.create') }}">
-            <button class="back-btn">الرئيسيه</button>
-
+            <button class="back-btn">الرئيسية</button>
         </form>
-        <div class="invoice-container" role="region" aria-label="Invoice container">
+
+        <div class="invoice-container">
+            @php
+                $grandTotal = 0;
+                foreach ($items as $item) {
+                    $grandTotal += $item['total'];
+                }
+            @endphp
+
             <div class="invoice-header">
-                <div class="header-left" style="gap:18px;">
-                    <div class="summary" id="fixedSummary">الإجمالي:
-                        @php $grandTotal = 0; @endphp
-                        @foreach ($items as $item)
-                            @php $grandTotal += $item['total']; @endphp
-                        @endforeach
-                        <span style="margin-left:10px;">{{ $grandTotal }} جينة</span>
+                <div class="header-left">
+                    <div class="summary">
+                        الصافي: <span style="margin-right:8px;" id="headerTotalValue">{{ $grandTotal }} ج.م</span>
                     </div>
                 </div>
-
-
             </div>
 
             <!-- جدول الديسكتوب -->
-            <div class="table-wrapper" aria-live="polite">
-                <table class="invoice-table" role="table" aria-label="Invoice items">
-                    <thead role="rowgroup">
-                        <tr role="row">
-                            <th role="columnheader">عدد</th>
-                            <th role="columnheader">منتج</th>
-                            <th role="columnheader">سعر</th>
-                            <th role="columnheader">مجموع</th>
+            <div class="table-wrapper">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>عدد</th>
+                            <th>المنتج</th>
+                            <th>سعر الوحدة</th>
+                            <th>المجموع</th>
                         </tr>
                     </thead>
-                    <tbody role="rowgroup">
+                    <tbody>
                         @foreach ($items as $item)
-                            <tr role="row">
-                                <td role="cell">{{ $item['qty'] }}</td>
-                                <td role="cell" style="text-align:right; padding-right:14px;">{{ $item['name'] }}
-                                </td>
-                                <td role="cell">{{ $item['price'] ?? '-' }}</td>
-                                <td role="cell" class="total">{{ $item['total'] }}</td>
+                            <tr>
+                                <td>{{ $item['qty'] }}</td>
+                                <td>{{ $item['name'] }}</td>
+                                <td>{{ $item['price'] ?? '-' }}</td>
+                                <td class="total">{{ $item['total'] }}</td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
 
-            <!-- كروت الموبايل (تظهر فقط على شاشات صغيرة) -->
-            <div class="cards-wrapper" aria-live="polite">
+            <!-- كروت الموبايل -->
+            <div class="cards-wrapper">
                 @foreach ($items as $item)
-                    <div class="item-card" role="article" aria-label="صنف: {{ $item['name'] }}">
-                        <div class="item-left">
+                    <div class="item-card">
+                        <div style="display:flex; gap: 10px; align-items:center;">
                             <div class="item-badge">{{ $item['qty'] }}</div>
-                            <div class="item-details">
-                                <div class="item-name">{{ $item['name'] }}</div>
-                            </div>
+                            <div class="item-name">{{ $item['name'] }}</div>
                         </div>
-
-                        <div class="item-right">
-                            <div class="item-price">سعر الوحدة: {{ $item['price'] ?? '-' }}</div>
-                            <div class="item-total">مجموع: {{ $item['total'] }}</div>
+                        <div style="text-align: left;">
+                            <div style="font-weight: 700;">{{ $item['price'] ?? '-' }}</div>
+                            <div class="item-total">{{ $item['total'] }}</div>
                         </div>
                     </div>
                 @endforeach
             </div>
 
-            <!-- زر إتمام الفاتورة (الـ form الرئيسي) -->
-            <form id="invoiceForm" style="margin-top:8px;">
+            <form id="invoiceForm">
                 @csrf
                 <input type="hidden" name="client_id" value="{{ $client->id ?? '' }}">
-                <input type="hidden" name="notes" value="عملية بيع منفصله عن العمله">
+                <input type="hidden" name="notes" value="عملية بيع منفصلة">
 
                 @foreach ($items as $index => $item)
                     <input type="hidden" name="items[{{ $index }}][item_type]" value="product">
@@ -558,32 +461,75 @@
                     <input type="hidden" name="items[{{ $index }}][qty]" value="{{ $item['qty'] }}">
                 @endforeach
 
-                <div class="action-bar" aria-hidden="false">
-                    <div class="action-left">
-                        <button type="button" class="btn-cancel"
-                            onclick="window.location.replace('{{ route('sale_proccess.create') }}')">إلغاء</button>
-                        <button type="button" class="btn-print" onclick="openPrintForm()">طباعة الفاتورة</button>
+                <!-- قسم الخصم والإجماليات -->
+                <div style="width: 100%; margin-top: 10px; text-align: right;">
+                    <label for="hiveNote"
+                        style="font-weight: 800; font-size: 14px; color: var(--accent1); margin-bottom: 5px; display: block;">
+                        🐝 Hive Special Notes:
+                    </label>
+                    <textarea id="hiveNote" name="note" rows="2"
+                        style="width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-family: inherit; font-size: 14px; resize: none; outline: none; box-sizing: border-box; transition: 0.3s;"
+                        placeholder="اكتب ملاحظة مميزة للعميل لتطبع على الفاتورة..."></textarea>
+                </div>
+                <div class="totals-section">
+                    <div class="total-row">
+                        <span>الإجمالي قبل الخصم:</span>
+                        <span>{{ $grandTotal }} ج.م</span>
                     </div>
 
-                    <div class="action-right">
-                        <button type="submit" class="btn-done">إتمام الفاتورة</button>
+                    {{-- ✅ التحقق من الصلاحيات هنا (إظهار الخصم للمدير والمشرف فقط) --}}
+                    @if (auth()->check() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('supervisor')))
+                        <div class="total-row discount-row">
+                            <div style="display:flex; justify-content:space-between; width:100%;">
+                                <span>إضافة خصم:</span>
+                            </div>
+                            <div class="discount-controls">
+                                <select name="discount_type" id="discountType" class="discount-select">
+                                    <option value="fixed">مبلغ ثابت (ج.م)</option>
+                                    <option value="percentage">نسبة مئوية (%)</option>
+                                </select>
+                                <input type="number" id="discountInput" name="discount_value" value="0"
+                                    min="0" step="0.5" class="discount-input" placeholder="0">
+                            </div>
+                            <input type="text" name="discount_reason" placeholder="سبب الخصم (اختياري)"
+                                class="discount-reason">
+                        </div>
+                    @else
+                        {{-- إذا لم يكن يمتلك صلاحية، نرسل القيم افتراضياً بـ 0 --}}
+                        <input type="hidden" name="discount_value" value="0">
+                        <input type="hidden" name="discount_type" value="fixed">
+                    @endif
+
+                    <div class="total-row net-total-row">
+                        <span>الصافي المطلوب:</span>
+                        <span id="netTotalDisplay">{{ $grandTotal }} ج.م</span>
                     </div>
+                </div>
+
+                <!-- أزرار الديسكتوب -->
+                <div class="action-bar">
+                    <button type="button" class="btn-cancel"
+                        onclick="window.location.replace('{{ route('sale_proccess.create') }}')">إلغاء</button>
+                    <button type="submit" class="btn-done">إتمام الدفع والفاتورة</button>
                 </div>
             </form>
 
-            <!-- فورم الطباعة: يبقى موجوداً منفصلاً ويُرسل target=_blank -->
+            <!-- فورم الطباعة -->
             <form id="printForm" action="{{ route('invoices.print') }}" method="POST" target="_blank"
                 style="display:none;">
                 @csrf
+                <input type="hidden" name="discount" id="printDiscountInput" value="0">
+                <input type="hidden" name="note" id="printNoteInput" value="">
                 @foreach ($items as $index => $item)
                     <input type="hidden" name="items[{{ $index }}][qty]" value="{{ $item['qty'] }}">
                     <input type="hidden" name="items[{{ $index }}][name]" value="{{ $item['name'] }}">
-                    <input type="hidden" name="items[{{ $index }}][price]" value="{{ $item['price'] ?? '' }}">
+                    <input type="hidden" name="items[{{ $index }}][price]"
+                        value="{{ $item['price'] ?? '' }}">
                 @endforeach
             </form>
 
-            <!-- شريط أزرار ثابت للهواتف (يحتوي نفس الزرار الرئيسي) -->
-            <div class="sticky-actions-mobile" aria-hidden="true">
+            <!-- شريط الموبايل -->
+            <div class="sticky-actions-mobile">
                 <button type="button" class="btn-cancel"
                     onclick="window.location.replace('{{ route('sale_proccess.create') }}')">إلغاء</button>
                 <button type="submit" form="invoiceForm" class="btn-done">إتمام الفاتورة</button>
@@ -591,49 +537,133 @@
         </div>
     </div>
 
+    <!-- المودلز الخاصة بالدفع والخطأ -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="modal-content">
+            <div style="font-size: 1.2rem; font-weight: 800;">اختر طريقة الدفع</div>
+            <div class="payment-options">
+                <div class="pay-btn" onclick="submitWithPayment('cash')">
+                    <div style="font-size: 30px;">💵</div> كاش
+                </div>
+                <div class="pay-btn" onclick="submitWithPayment('digital')">
+                    <div style="font-size: 30px;">📱</div> محفظة
+                </div>
+            </div>
+            <button type="button" class="btn-close-modal" onclick="closePaymentModal()">إغلاق وتعديل
+                الفاتورة</button>
+        </div>
+    </div>
+
+    <div id="errorModal" class="modal-overlay">
+        <div class="modal-content" style="border:2px solid #ff4b2b;">
+            <div style="font-size:22px; color:#ff4b2b; font-weight:bold;">⚠️ تنبيه</div>
+            <p id="errorText" style="margin-top:15px; font-weight:bold;"></p>
+            <button onclick="closeErrorModal()" class="btn-close-modal" style="color:#ff4b2b;">إغلاق</button>
+        </div>
+    </div>
+
     <script>
-        // وظائف مساعدة (معدلة لتنسيق الواجهة الجديدة)
-        function buildFormData(form) {
-            return new FormData(form);
+        const baseTotal = {{ $grandTotal }};
+        const discountInput = document.getElementById('discountInput');
+        const discountType = document.getElementById('discountType');
+        const netTotalDisplay = document.getElementById('netTotalDisplay');
+        const headerTotalValue = document.getElementById('headerTotalValue');
+        const printDiscountInput = document.getElementById('printDiscountInput');
+
+        // ✅ دالة احتساب الخصم ديناميكياً (نسبة أو مبلغ ثابت)
+        function calculateDiscount() {
+            if (!discountInput) return; // للعملاء بدون صلاحيات
+
+            let val = parseFloat(discountInput.value) || 0;
+            let type = discountType.value;
+            let discountAmount = 0;
+
+            if (val < 0) {
+                val = 0;
+                discountInput.value = '';
+            }
+
+            if (type === 'percentage') {
+                if (val > 100) {
+                    val = 100;
+                    discountInput.value = 100;
+                }
+                discountAmount = (baseTotal * val) / 100;
+            } else {
+                if (val > baseTotal) {
+                    val = baseTotal;
+                    discountInput.value = baseTotal;
+                }
+                discountAmount = val;
+            }
+
+            let netTotal = baseTotal - discountAmount;
+            let formattedNet = Number(netTotal.toFixed(2));
+
+            // تحديث الواجهة
+            netTotalDisplay.innerText = formattedNet + ' ج.م';
+            headerTotalValue.innerText = formattedNet + ' ج.م';
+
+            // نرسل قيمة الخصم الفعلية كأموال للطباعة
+            if (printDiscountInput) printDiscountInput.value = discountAmount;
         }
 
-        function postJsonForm(url, fd) {
-            return fetch(url, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: fd,
-                credentials: 'same-origin'
-            });
+        if (discountInput) {
+            discountInput.addEventListener('input', calculateDiscount);
+            discountType.addEventListener('change', calculateDiscount);
         }
 
-        function openPrintForm() {
-            document.getElementById('printForm').submit();
+        // --- دوال الإرسال والمودال ---
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
         }
 
-        document.getElementById('invoiceForm').addEventListener('submit', async function(e) {
+        function closeErrorModal() {
+            document.getElementById('errorModal').style.display = 'none';
+        }
+
+        function showErrorModal(message) {
+            document.getElementById('errorText').innerText = message;
+            document.getElementById('errorModal').style.display = 'flex';
+        }
+
+        document.getElementById('invoiceForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const form = e.target;
-            const alreadyRetried = !!form.querySelector('input[name="_after_shift_retry"]');
+            document.getElementById('paymentModal').style.display = 'flex';
+        });
+
+        async function submitWithPayment(type) {
+            document.getElementById('paymentModal').style.display = 'none';
+            const form = document.getElementById('invoiceForm');
+            const doneBtns = document.querySelectorAll('.btn-done');
+
+            const fd = new FormData(form);
+            fd.append('payment_type', type);
 
             try {
-                let response = await postJsonForm("{{ route('invoices.store') }}", buildFormData(form));
+                doneBtns.forEach(btn => {
+                    btn.disabled = true;
+                    btn.innerText = "جاري الحفظ...";
+                });
+
+                let response = await fetch("{{ route('invoices.store') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: fd
+                });
+
                 const ct = response.headers.get('content-type') || '';
-                let data;
-                if (ct.indexOf('application/json') !== -1) {
-                    data = await response.json();
-                } else {
-                    data = {
-                        message: await response.text()
-                    };
-                }
+                let data = ct.includes('application/json') ? await response.json() : {
+                    message: await response.text()
+                };
 
                 if (response.ok) {
                     const invoiceId = data.invoice ? (data.invoice.id ?? null) : null;
-                    if (confirm('✅ تم إنشاء الفاتورة بنجاح. هل تريد طباعة الفاتورة الآن؟')) {
+                    if (confirm('✅ تم إنشاء الفاتورة بنجاح. هل تريد طباعتها الآن؟')) {
                         if (invoiceId) {
                             const invInput = document.createElement('input');
                             invInput.type = 'hidden';
@@ -641,77 +671,41 @@
                             invInput.value = invoiceId;
                             document.getElementById('printForm').appendChild(invInput);
                         }
+                        // نقل الملاحظة إلى فورم الطباعة
+                        const noteValue = document.getElementById('hiveNote') ? document.getElementById('hiveNote')
+                            .value : '';
+                        document.getElementById('printNoteInput').value = noteValue;
+
+                        // ثم أمر الإرسال الموجود مسبقاً
                         document.getElementById('printForm').submit();
                     }
-                    window.location.href = "{{ route('main.create') }}";
-                    return;
-                }
-                // حالات خطأ عامة
-                if (response.status === 422) {
-                    alert(data.message || 'تحقق من صحة البيانات المدخلة (422).');
-                } else if (response.status === 419) {
-                    alert('انتهت الجلسة (CSRF). أعد تحميل الصفحة ثم أعد المحاولة.');
-                } else if (response.status === 403) {
-                    alert(data.message || 'لا تملك صلاحية لتنفيذ هذا الإجراء.');
+                    setTimeout(() => {
+                        window.location.href = "{{ route('main.create') }}";
+                    }, 1000);
                 } else {
-                    alert(data.message || `حدث خطأ في الخادم (كود ${response.status}).`);
+                    throw new Error(data.message || 'حدث خطأ في السيرفر');
                 }
             } catch (err) {
-                console.error('Unexpected/network error:', err);
-                alert('حدث خطأ أثناء الاتصال بالسيرفر. تأكد من اتصالك بالإنترنت أو راجع السجل.');
+                console.error(err);
+                showErrorModal(err.message);
+                doneBtns.forEach(btn => {
+                    btn.disabled = false;
+                    btn.innerText = "إتمام الفاتورة";
+                });
             }
-        });
-    </script>
-    <script>
-        /**
-         * Submit on Enter:
-         * - اضغط Enter => ينفذ click على زر .btn-done
-         * - يتجاهل لو التركيز على textarea أو على عنصر contenteditable
-         * - يتجاهل لو العنصر الحالي يحمل data-ignore-enter="true"
-         */
+        }
+
+        // اختصار لوحة المفاتيح
         document.addEventListener('keydown', function(e) {
-            // فقط مفتاح Enter
-            if (e.key !== 'Enter') return;
-
-            // لا نريد تكرار عند الضغط المستمر
-            if (e.repeat) return;
-
+            if (e.key !== 'Enter' || e.repeat) return;
             const active = document.activeElement;
             if (!active) return;
-
-            const tag = active.tagName.toUpperCase();
-
-            // تجاهل لو بنكتب في textarea أو داخل عنصر قابل للتحرير
-            if (tag === 'TEXTAREA' || active.isContentEditable) return;
-
-            // تجاهل لو المستخدم وضع علامه لمنع السلوك على حقل معين
-            if (active.hasAttribute && active.hasAttribute('data-ignore-enter')) return;
-
-            // بعض الـ INPUTs نسمح لهم بالـ Enter (مثلاً حقل البحث) أو نمنعهم
-            // هنا نمنع لو التركيز على input من نوع button/file/radio/checkbox/image
-            if (tag === 'INPUT') {
-                const t = (active.type || '').toLowerCase();
-                const blocked = ['button', 'file', 'radio', 'checkbox', 'image'];
-                if (blocked.includes(t)) return;
-                // إذا كنت لا تريد ارسال Enter داخل حقول النص (مثلاً عند تعديل اسم المنتج)
-                // أزل التعليق من السطر التالي لتعطيل submit عند التركيز في أي INPUT نصي:
-                // if (['text','search','number','email','tel','password'].includes(t)) return;
-            }
-
-            // منع السلوك الإفتراضي (مثلاً إرسال فورم افتراضياً)
+            if (active.tagName === 'TEXTAREA' || active.isContentEditable || active.id === 'discountInput') return;
             e.preventDefault();
-
-            // شوف زر الإتمام (نسختين: داخل الفورم أو شريط الهواتف)
-            const doneBtn = document.querySelector('.btn-done[form="invoiceForm"]') ||
-                document.querySelector('.btn-done');
-
-            if (doneBtn) {
-                // أمر مباشر للنقر — سيشغّل الـ submit handler الموجود
-                doneBtn.click();
-            }
+            const doneBtn = document.querySelector('.btn-done:not([disabled])');
+            if (doneBtn) doneBtn.click();
         });
     </script>
-
 </body>
 
 </html>

@@ -2,348 +2,500 @@
 
 @section('content')
     <div class="drafts-wrapper">
-
-        @if (session('success'))
-            <script>
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: "{{ session('success') }}",
-                    showConfirmButton: false,
-                    timer: 3500,
-                    timerProgressBar: true,
-                    background: '#fff',
-                    color: '#333',
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    }
-                });
-            </script>
-        @endif
-
-        @if (session('error'))
-            <script>
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'error',
-                    title: "{{ session('error') }}",
-                    showConfirmButton: false,
-                    timer: 3500,
-                    timerProgressBar: true,
-                    background: '#fff',
-                    color: '#333',
-                    showClass: {
-                        popup: 'animate__animated animate__fadeInDown'
-                    },
-                    hideClass: {
-                        popup: 'animate__animated animate__fadeOutUp'
-                    }
-                });
-            </script>
-        @endif
-
-        <h2 class="page-title">ملاحظات الموظفين (Drafts)</h2>
-
-        <div class="table-container" role="region" aria-label="Drafts list">
-            <!-- TABLE: يظهر على الشاشات الكبيرة -->
-            <table class="styled-table" aria-hidden="false">
-                <thead>
-                    <tr>
-                        <th>الوصف</th>
-                        <th>المبلغ التقديري</th>
-                        <th>الموظف</th>
-                        <th>إجراء</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($drafts as $draft)
-                        <tr>
-                            <td class="td-note">{{ $draft->note }}</td>
-                            <td>{{ $draft->estimated_amount ?? 'غير محدد' }}</td>
-                            <td>{{ $draft->user->name ?? 'غير معروف' }}</td>
-                            <td>
-                                <form action="{{ route('expense-drafts.convert', $draft->id) }}" method="POST"
-                                    class="action-form">
-                                    @csrf
-                                    <select name="expense_type_id" class="styled-select" required>
-                                        <option value="">اختر النوع</option>
-                                        @foreach ($types as $type)
-                                            <option value="{{ $type->id }}">{{ $type->name }}</option>
-                                        @endforeach
-                                    </select>
-
-                                    <input type="number" step="0.01" name="amount" placeholder="القيمة الرسمية"
-                                        required aria-label="Amount">
-                                    <button type="submit" class="btn-submit">تحويل لمصروف</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- CARDS GRID: يظهر على الموبايل -->
-            <div class="cards-grid" aria-hidden="true">
-                @foreach ($drafts as $draft)
-                    <article class="draft-card" role="article" aria-label="ملاحظة {{ $draft->id }}">
-                        <div class="card-header">
-                            <h3 class="card-user">{{ $draft->user->name ?? 'غير معروف' }}</h3>
-                            <span class="card-amount">{{ $draft->estimated_amount ?? 'غير محدد' }}</span>
-                        </div>
-                        <p class="card-note">{{ $draft->note }}</p>
-
-                        <form action="{{ route('expense-drafts.convert', $draft->id) }}" method="POST"
-                            class="card-action-form">
-                            @csrf
-                            <select name="expense_type_id" class="styled-select" required>
-                                <option value="">اختر النوع</option>
-                                @foreach ($types as $type)
-                                    <option value="{{ $type->id }}">{{ $type->name }}</option>
-                                @endforeach
-                            </select>
-
-                            <input type="number" step="0.01" name="amount" placeholder="القيمة الرسمية" required
-                                aria-label="Amount">
-                            <button type="submit" class="btn-submit">تحويل</button>
-                        </form>
-                    </article>
-                @endforeach
+        <div class="page-header">
+            <h2 class="page-title">إدارة مصاريف الموظفين (Drafts)</h2>
+            <div class="search-filter-bar">
+                <input type="text" id="tableSearch" placeholder="بحث بالوصف أو اسم الموظف..." class="filter-input">
+                <input type="date" id="dateFilter" class="filter-input">
+                <label class="select-all-label">
+                    <input type="checkbox" id="selectAll"> تحديد الكل
+                </label>
             </div>
+        </div>
+
+        {{-- بار العمليات الجماعية العائم - تم إضافة زر التصدير --}}
+        <div class="actions-bar" id="bulk-actions" style="display: none;">
+            <span class="selected-count">تم تحديد <span id="count">0</span> مصروف</span>
+            <div class="bulk-btns">
+                <button id="export-selected-btn" class="btn-bulk-export">
+                    <i class="fas fa-file-export"></i> تصدير المحدد
+                </button>
+                <button id="delete-selected-btn" class="btn-bulk-delete">
+                    <i class="fas fa-trash"></i> حذف
+                </button>
+            </div>
+        </div>
+
+        <div class="timeline-container">
+            @forelse ($drafts->groupBy(fn($date) => \Carbon\Carbon::parse($date->created_at)->format('Y-m-d')) as $day => $dayDrafts)
+                <div class="day-group" data-date="{{ $day }}">
+                    <div class="day-label">
+                        <span class="date-text">
+                            <i class="far fa-calendar-alt"></i>
+                            {{ \Carbon\Carbon::parse($day)->translatedFormat('l, d F Y') }}
+                        </span>
+                        <span class="day-total">{{ $dayDrafts->count() }} عمليات</span>
+                    </div>
+
+                    @foreach ($dayDrafts as $draft)
+                        <div class="expense-item-card"
+                            data-searchable="{{ strtolower($draft->note . ' ' . ($draft->user->name ?? '')) }}">
+                            <div class="item-main">
+                                {{-- الجزء العلوي: التشيك بوكس والبيانات الأساسية --}}
+                                <div class="item-top-row">
+                                    <div class="item-checkbox">
+                                        <input type="checkbox" class="draft-checkbox" value="{{ $draft->id }}">
+                                    </div>
+                                    <div class="item-info">
+                                        <div class="info-header">
+                                            <span class="employee-name">{{ $draft->user->name ?? 'غير معروف' }}</span>
+                                            <span class="item-time"><i class="far fa-clock"></i>
+                                                {{ \Carbon\Carbon::parse($draft->created_at)->format('g:i A') }}</span>
+                                        </div>
+                                        <p class="item-note">{{ $draft->note }}</p>
+                                    </div>
+                                    <div class="item-amount">
+                                        <span class="amount-val">{{ number_format($draft->estimated_amount, 2) }}</span>
+                                        <span class="currency">ج.م</span>
+                                    </div>
+                                </div>
+
+                                {{-- الجزء السفلي: أزرار التحكم والتحويل --}}
+                                <div class="item-actions-row">
+                                    <form action="{{ route('expense-drafts.convert', $draft->id) }}" method="POST"
+                                        class="inline-convert-form">
+                                        @csrf
+                                        <div class="input-group-custom">
+                                            <select name="expense_type_id" class="mini-select" required>
+                                                <option value="">نوع المصروف</option>
+                                                @foreach ($types as $type)
+                                                    <option value="{{ $type->id }}"
+                                                        {{ $draft->expense_type_id == $type->id ? 'selected' : '' }}>
+                                                        {{ $type->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <input type="number" step="0.01" name="amount"
+                                                value="{{ $draft->estimated_amount }}" class="mini-input" required>
+                                            <button type="submit" class="btn-convert-submit">
+                                                <i class="fas fa-check"></i> تحويل
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                    <div class="secondary-actions">
+                                        {{-- زر التصدير الفردي --}}
+                                        <button class="btn-export-single" onclick="exportSingle('{{ $draft->id }}')"
+                                            title="تصدير">
+                                            <i class="fas fa-file-export"></i>
+                                        </button>
+                                        {{-- زر الحذف الفردي --}}
+                                        <button class="btn-delete-single" onclick="deleteSingle('{{ $draft->id }}')"
+                                            title="حذف">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @empty
+                <div class="empty-state">
+                    <i class="fas fa-file-invoice" style="font-size: 3rem; color: var(--text-p); opacity: 0.3;"></i>
+                    <p>لا توجد مصاريف حالياً</p>
+                </div>
+            @endforelse
         </div>
     </div>
 
-<style>
-    :root {
-        --bg-color: #0e0e11;
-        --card-bg: #16161a;
-        --accent: #ffb84d;
-        --accent-light: #ffe6a3;
-        --text-main: #f5f5f5;
-        --text-dim: #bfbfbf;
-        --border-light: rgba(255, 255, 255, 0.08);
-        --radius: 14px;
-    }
-
-    body {
-        font-family: "Cairo", sans-serif;
-        background: var(--bg-color);
-        color: var(--text-main);
-        margin: 0;
-        padding: 90px;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-
-    .page-title {
-        font-size: 24px;
-        margin-bottom: 18px;
-        color: var(--accent-light);
-        font-weight: 600;
-    }
-
-    .table-container {
-        background: var(--card-bg);
-        padding: 20px;
-        border-radius: var(--radius);
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
-        border: 1px solid var(--border-light);
-        overflow: hidden;
-    }
-
-    /* TABLE */
-    .styled-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 15px;
-    }
-
-    .styled-table thead {
-        background: var(--accent);
-        color: #111;
-    }
-
-    .styled-table th,
-    .styled-table td {
-        padding: 14px 12px;
-        text-align: center;
-        vertical-align: middle;
-    }
-
-    .styled-table tbody tr {
-        border-bottom: 1px solid var(--border-light);
-        transition: background 0.18s ease;
-    }
-
-    .styled-table tbody tr:hover {
-        background: rgba(255, 184, 77, 0.08);
-    }
-
-    .td-note {
-        max-width: 420px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        direction: rtl;
-        color: var(--text-dim);
-    }
-
-    /* INPUTS */
-    .styled-select,
-    input[type="number"] {
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid var(--border-light);
-        margin: 6px;
-        font-size: 14px;
-        min-width: 140px;
-        background: #1c1c1f;
-        color: var(--text-main);
-        transition: 0.2s;
-    }
-
-    .styled-select:focus,
-    input[type="number"]:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 8px rgba(255, 184, 77, 0.3);
-        outline: none;
-    }
-
-    /* BUTTONS */
-    .btn-submit {
-        background: linear-gradient(135deg, var(--accent), #e0a44a);
-        border: none;
-        padding: 10px 16px;
-        border-radius: 10px;
-        color: #111;
-        font-weight: 700;
-        cursor: pointer;
-        transition: transform 0.18s, box-shadow 0.18s;
-        margin-top: 6px;
-    }
-
-    .btn-submit:hover,
-    .btn-submit:focus {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 184, 77, 0.3);
-        outline: none;
-    }
-
-    .action-form {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    /* CARDS */
-    .cards-grid {
-        display: none;
-        gap: 14px;
-        margin-top: 6px;
-    }
-
-    .draft-card {
-        background: var(--card-bg);
-        border-radius: 12px;
-        padding: 14px;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-        border: 1px solid var(--border-light);
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .card-user {
-        font-size: 16px;
-        margin: 0;
-        color: var(--text-main);
-        font-weight: 600;
-    }
-
-    .card-amount {
-        font-size: 14px;
-        color: var(--accent-light);
-        background: rgba(255, 184, 77, 0.08);
-        padding: 6px 10px;
-        border-radius: 8px;
-    }
-
-    .card-note {
-        margin: 0;
-        color: var(--text-dim);
-        font-size: 14px;
-        white-space: pre-wrap;
-    }
-
-    .card-action-form {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 900px) {
-        .styled-table {
-            display: none;
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --card-bg: #1a1d29;
+            --accent-gold: #ffb84d;
+            --danger: #ff4d4d;
+            --success: #2ecc71;
+            --info: #3498db;
+            --text-p: #a0a7b1;
+            --border: rgba(255, 255, 255, 0.08);
         }
 
-        .cards-grid {
-            display: grid;
-            grid-template-columns: 1fr;
+        .drafts-wrapper {
+            padding: 15px;
+            max-width: 1100px;
+            margin: 0 auto;
         }
 
-        .table-container {
-            padding: 16px;
-        }
-
-        body {
-            padding: 16px;
+        .page-header {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
         }
 
         .page-title {
-            font-size: 20px;
-            margin-bottom: 12px;
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 1.5rem;
         }
 
-        .styled-select,
-        input[type="number"] {
-            min-width: 100%;
+        .search-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-input {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .select-all-label {
+            color: #fff;
+            cursor: pointer;
+            background: var(--card-bg);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* Expense Card Styling */
+        .expense-item-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .item-top-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .employee-name {
+            font-weight: bold;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .item-time {
+            font-size: 0.75rem;
+            color: var(--text-p);
+        }
+
+        .item-note {
+            color: var(--text-p);
+            font-size: 0.85rem;
             margin: 0;
         }
 
-        .card-action-form .btn-submit {
-            min-width: 110px;
-            margin-left: 8px;
+        .amount-val {
+            color: var(--accent-gold);
+            font-weight: bold;
+            font-size: 1.2rem;
         }
-    }
 
-    @media (min-width: 901px) and (max-width: 1200px) {
-        .td-note {
-            max-width: 300px;
+        /* Actions Row - التحويل والتصدير */
+        .item-actions-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
         }
-    }
 
-    /* Focus accessibility */
-    .styled-select:focus-visible,
-    input[type="number"]:focus-visible,
-    .btn-submit:focus-visible {
-        outline: 2px solid rgba(255, 184, 77, 0.25);
-        outline-offset: 2px;
-    }
-</style>
+        .input-group-custom {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
 
+        .mini-select,
+        .mini-input {
+            background: #252936;
+            border: 1px solid var(--border);
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .mini-select {
+            flex: 1.5;
+            min-width: 120px;
+        }
+
+        .mini-input {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .btn-convert-submit {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .secondary-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-export-single,
+        .btn-delete-single {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .btn-export-single {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--info);
+        }
+
+        .btn-delete-single {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--danger);
+        }
+
+        .btn-export-single:hover {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-delete-single:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Bulk Actions Bar */
+        .actions-bar {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 12px;
+            z-index: 2000;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .bulk-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-bulk-export {
+            background: var(--info);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-bulk-delete {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .item-actions-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-group-custom {
+                flex-direction: column;
+            }
+
+            .secondary-actions {
+                justify-content: flex-end;
+                margin-top: 10px;
+            }
+
+            .page-header {
+                text-align: center;
+            }
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            // 1. البحث الحي
+            $("#tableSearch").on("keyup", function() {
+                let value = $(this).val().toLowerCase();
+                $(".expense-item-card").filter(function() {
+                    $(this).toggle($(this).data('searchable').indexOf(value) > -1);
+                });
+                checkEmptyGroups();
+            });
+
+            // 2. فلتر التاريخ
+            $("#dateFilter").on("change", function() {
+                let selectedDate = $(this).val();
+                if (!selectedDate) {
+                    $(".day-group").show();
+                } else {
+                    $(".day-group").hide();
+                    $(`.day-group[data-date="${selectedDate}"]`).show();
+                }
+            });
+
+            // 3. تحديد الكل
+            $('#selectAll').on('change', function() {
+                let checked = $(this).is(':checked');
+                $('.draft-checkbox:visible').prop('checked', checked).trigger('change');
+            });
+
+            // 4. إظهار بار العمليات الجماعية
+            $(document).on('change', '.draft-checkbox', function() {
+                let checkedCount = $('.draft-checkbox:checked').length;
+                if (checkedCount > 0) {
+                    $('#bulk-actions').fadeIn().css('display', 'flex');
+                    $('#count').text(checkedCount);
+                } else {
+                    $('#bulk-actions').fadeOut();
+                }
+            });
+
+            // 5. وظيفة التصدير الجماعي
+            // 5. وظيفة التحويل الجماعي (تصدير المحدد)
+            $('#export-selected-btn').on('click', function() {
+                let checked = $('.draft-checkbox:checked');
+
+                if (checked.length === 0) return;
+
+                Swal.fire({
+                    title: 'تحويل المحدد؟',
+                    text: `سيتم تحويل ${checked.length} مصروف إلى مصروف رسمي`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#2ecc71',
+                    confirmButtonText: 'نعم، تحويل',
+                    cancelButtonText: 'إلغاء'
+                }).then((result) => {
+
+                    if (!result.isConfirmed) return;
+
+                    checked.each(function() {
+
+                        let card = $(this).closest('.expense-item-card');
+
+                        let form = card.find('.inline-convert-form');
+
+                        // إرسال الفورم مثل زر التحويل الأخضر
+                        form.submit();
+                    });
+
+                });
+            });
+
+            // 6. وظيفة التصدير الفردي (استدعاء مباشر للفورم الموجود بجانب كل عنصر)
+            window.exportSingle = function(id) {
+                // نجد الفورم القريب من الزر ونقوم بعمل Submit له
+                $(`.expense-item-card input[value="${id}"]`)
+                    .closest('.expense-item-card')
+                    .find('.inline-convert-form')
+                    .submit();
+            };
+            // 7. الحذف الجماعي
+            $('#delete-selected-btn').on('click', function() {
+                let ids = getSelectedIds();
+                confirmAndAction('حذف المصاريف المحددة؟', `سيتم حذف ${ids.length} عنصر`, '#ff4d4d', () =>
+                    bulkDeleteAjax(ids));
+            });
+
+            window.deleteSingle = function(id) {
+                confirmAndAction('حذف المصروف؟', "لا يمكن التراجع عن هذا الإجراء", '#ff4d4d', () =>
+                    bulkDeleteAjax([id]));
+            };
+
+            function getSelectedIds() {
+                return $('.draft-checkbox:checked').map(function() {
+                    return $(this).val();
+                }).get();
+            }
+
+            function confirmAndAction(title, text, color, action) {
+                Swal.fire({
+                    title: title,
+                    text: text,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: color,
+                    confirmButtonText: 'نعم، استمر'
+                }).then((result) => {
+                    if (result.isConfirmed) action();
+                });
+            }
+
+            function bulkDeleteAjax(ids) {
+                $.post("{{ route('expense-drafts.bulk-delete') }}", {
+                    _token: "{{ csrf_token() }}",
+                    ids: ids
+                }, function(res) {
+                    Swal.fire('تم بنجاح', res.success, 'success').then(() => location.reload());
+                });
+            }
+
+            function checkEmptyGroups() {
+                $(".day-group").each(function() {
+                    $(this).toggle($(this).find(".expense-item-card:visible").length > 0);
+                });
+            }
+        });
+    </script>
 @endsection

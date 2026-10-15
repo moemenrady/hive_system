@@ -11,7 +11,8 @@ class VenuePricing extends Model
     protected $fillable = [
         'base_hour_price',
         'setter_name',
-        'is_active'
+        'is_active',
+        'is_employee_discount',
     ];
 }
 
