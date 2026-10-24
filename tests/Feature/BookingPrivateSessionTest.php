@@ -239,4 +239,89 @@ class BookingPrivateSessionTest extends TestCase
         $booking = Booking::where('hall_id', $this->hall->id)->first();
         $this->assertEquals($existingClient->id, $booking->client_id);
     }
+
+    public function test_booking_checkout_ends_session_successfully_with_open_shift(): void
+    {
+        $shift = Shift::create([
+            'user_id' => $this->staff->id,
+            'start_time' => now(),
+            'total_amount' => 0,
+            'total_expense' => 0,
+        ]);
+
+        $client = Client::create(['name' => 'خالد سعيد', 'phone' => '01055554444']);
+        $booking = Booking::create([
+            'hall_id' => $this->hall->id,
+            'client_id' => $client->id,
+            'title' => 'جلسة خاصة - خالد سعيد',
+            'attendees' => 2,
+            'start_at' => now()->subMinutes(60),
+            'real_start_at' => now()->subMinutes(60),
+            'end_at' => now(),
+            'duration_minutes' => 60,
+            'status' => 'in_progress',
+            'base_hour_price' => 100,
+            'extra_person_hour_price' => 50,
+            'estimated_total' => 100,
+            'min_capacity_snapshot' => 2,
+        ]);
+
+        $response = $this->actingAs($this->staff)->post(route('booking.checkout', $booking->id), [
+            'hours_total' => 100,
+            'remaining' => 100,
+            'deposit_paid' => 0,
+            'hourly_rate' => 100,
+            'payment_type' => 'cash',
+        ]);
+
+        $response->assertRedirect(route('bookings.index-manager'));
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals('finished', $booking->status);
+        $this->assertNotNull($booking->real_end_at);
+        $this->assertEquals(100, $booking->real_total);
+
+        // تم تسجيل حركة إنهاء الحجز في الشيفت
+        $this->assertDatabaseHas('shift_actions', [
+            'shift_id' => $shift->id,
+            'action_type' => 'end_booking',
+            'amount' => 100,
+        ]);
+    }
+
+    public function test_admin_can_checkout_booking_even_without_open_shift(): void
+    {
+        // الأدمن ليس لديه شيفت مفتوح
+        $client = Client::create(['name' => 'يوسف كمال', 'phone' => '01077778888']);
+        $booking = Booking::create([
+            'hall_id' => $this->hall->id,
+            'client_id' => $client->id,
+            'title' => 'جلسة خاصة - يوسف كمال',
+            'attendees' => 3,
+            'start_at' => now()->subMinutes(90),
+            'real_start_at' => now()->subMinutes(90),
+            'end_at' => now(),
+            'duration_minutes' => 90,
+            'status' => 'in_progress',
+            'base_hour_price' => 100,
+            'extra_person_hour_price' => 50,
+            'estimated_total' => 150,
+            'min_capacity_snapshot' => 2,
+        ]);
+
+        // يجب ألا يرمي خطأ 500 أو استثناء قاتل
+        $response = $this->actingAs($this->admin)->post(route('booking.checkout', $booking->id), [
+            'hours_total' => 150,
+            'remaining' => 150,
+            'deposit_paid' => 0,
+            'hourly_rate' => 100,
+        ]);
+
+        $response->assertRedirect(route('bookings.index-manager'));
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals('finished', $booking->status);
+    }
 }

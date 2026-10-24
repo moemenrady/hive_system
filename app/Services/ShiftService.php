@@ -10,12 +10,17 @@ class ShiftService
   /**
    * تسجيل عملية جديدة في الشيفت الحالي
    */
-  public function logAction(string $actionType, ?int $invoiceId = null, float $amount = 0, ?string $paymentType, ?float $expenseAmount = null, ?string $notes = null)
+  public function logAction(string $actionType, ?int $invoiceId = null, float $amount = 0, ?string $paymentType = 'cash', ?float $expenseAmount = null, ?string $notes = null)
   {
     $user = Auth::user();
 
     $shift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
     if (!$shift) {
+      if ($user && $user->hasRole('admin')) {
+        \Log::info("Admin #{$user->id} executed {$actionType} without an active shift. Shift log skipped.");
+        return null;
+      }
+
       session()->flash('shift_required', true);
 
       throw new \Exception("⚠️ لازم تفتح شيفت الأول قبل تسجيل أي عملية");

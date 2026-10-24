@@ -1423,8 +1423,9 @@ class BookingController extends Controller
       'purchases_json' => ['nullable', 'string'],
       'deposit_paid' => ['nullable', 'numeric', 'min:0'],
       'hourly_rate' => ['nullable', 'numeric', 'min:0'],
-      'booking' => ['required', 'integer', 'exists:bookings,id'],
+      'booking' => ['nullable', 'integer'],
       'remaining' => ['required', 'numeric'],
+      'payment_type' => ['nullable', 'string'],
     ]);
 
     $hoursTotal = floatval($data['hours_total'] ?? 0);
@@ -1439,13 +1440,26 @@ class BookingController extends Controller
 
     DB::beginTransaction();
     try {
-      $invoice = Invoice::where('booking_id', $booking->id)->firstOrFail();
+      // 1. العثور على الفاتورة أو إنشاؤها إذا لم تكن موجودة
+      $invoice = Invoice::where('booking_id', $booking->id)->first();
+      if (!$invoice) {
+        $invoice = Invoice::create([
+          'invoice_number' => \App\Support\InvoiceNumber::next(),
+          'client_id' => $booking->client_id,
+          'booking_id' => $booking->id,
+          'type' => 'booking',
+          'total' => 0,
+          'profit' => 0,
+          'status' => 'pending',
+          'notes' => 'فاتورة حجز #' . $booking->id,
+        ]);
+      }
+
       $purchasesTotal = 0;
       $purchasesCostTotal = 0;
 
-      // ✅ إنشاء عناصر الفاتورة من المشتريات
+      // ✅ 2. إنشاء عناصر الفاتورة من المشتريات
       if (!empty($purchases) && is_array($purchases)) {
-
         foreach ($purchases as $item) {
           $productId = $item['id'] ?? null;
           $qty = $item['qty'] ?? 1;
@@ -1456,16 +1470,17 @@ class BookingController extends Controller
           if (!$product)
             continue;
           if ($qty > $product->quantity) {
+            DB::rollBack();
             return redirect()->back()->with(
               'error',
               "المنتج {$product->name} متوفر منه فقط {$product->quantity}، والمطلوب {$qty}."
             );
           }
-          $price = $product->price;
-          $cost = $product->cost;
+          $price = (float) $product->price;
+          $cost = (float) $product->cost;
           $total = $price * $qty;
           $purchasesTotal += $total;
-          $purchasesCostTotal += $cost * $qty; // ← مجموع تكلفة كل المنتجات
+          $purchasesCostTotal += $cost * $qty; // مجموع تكلفة كل المنتجات
           InvoiceItem::create([
             'invoice_id' => $invoice->id,
             'item_type' => 'product',
@@ -1490,10 +1505,12 @@ class BookingController extends Controller
         }
       }
 
-      $invoiceTotal = $invoice->total += $remaining;
+      $invoiceTotal = (float) $invoice->total + $remaining;
       $invoiceProfit = $invoiceTotal - $purchasesCostTotal;
-      // ✅ عنصر الفاتورة الخاص بالساعات
+
+      // ✅ 3. عنصر الفاتورة الخاص بالساعات
       if ($hoursTotal > 0) {
+        $hoursBilled = max(0, $hoursTotal - $depositPaid);
         InvoiceItem::create([
           'invoice_id' => $invoice->id,
           'item_type' => 'booking',
@@ -1501,41 +1518,54 @@ class BookingController extends Controller
           'subscription_id' => null,
           'booking_id' => $booking->id,
           'session_id' => null,
-          'name' => 'سعر الساعات للحجز رقم ' . $booking->id . ' (ناقص المقدم)',
+          'name' => 'سعر الساعات للحجز رقم ' . $booking->id . ($depositPaid > 0 ? ' (ناقص المقدم)' : ''),
           'qty' => 1,
-          'price' => $hoursTotal - $depositPaid,
+          'price' => $hoursBilled,
           'cost' => 0,
-          'total' => $hoursTotal - $depositPaid,
+          'total' => $hoursBilled,
           'description' => 'سعر الساعة: ' . number_format($hourlyRate, 2),
         ]);
       }
 
-      // ✅ تحديث الفاتورة والحجز
+      // ✅ 4. تحديث الفاتورة والحجز
       $booking->update([
         'status' => 'finished',
         'real_end_at' => now(),
+        'real_total' => $invoiceTotal,
       ]);
 
       $invoice->update([
         'total' => $invoiceTotal,
         'profit' => $invoiceProfit,
+        'status' => 'paid',
       ]);
 
-      // ✅ تسجيل الأكشن في الشيفت (لليوزر والأدمن)
-      $shiftService->logAction(
-        'end_booking',
-        $invoice->id,
-        $invoiceTotal,
-        null,
-        "انهاء حجز رقم: " . $booking->id
-      );
+      // ✅ 5. تسجيل الأكشن في الشيفت (لليوزر والأدمن إن وُجد شيفت مفتوح)
+      if ($invoice && $openShift) {
+        try {
+          $paidAmount = (float) ($remaining > 0 ? $remaining : $invoiceTotal);
+          $shiftService->logAction(
+            actionType: 'end_booking',
+            invoiceId: $invoice->id,
+            amount: $paidAmount,
+            paymentType: $data['payment_type'] ?? 'cash',
+            expenseAmount: null,
+            notes: "انهاء حجز رقم: " . $booking->id
+          );
+        } catch (\Throwable $e) {
+          \Log::warning('Shift end_booking log skipped or failed: ' . $e->getMessage());
+        }
+      }
 
       DB::commit();
 
       return redirect()->route('bookings.index-manager')
         ->with('success', 'تم إنهاء الحجز وإنشاء الفاتورة بنجاح.');
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
       DB::rollBack();
+      \Log::error('Error checking out booking #' . $booking->id . ': ' . $e->getMessage(), [
+        'trace' => $e->getTraceAsString(),
+      ]);
       return redirect()->back()->with('error', 'حدث خطأ أثناء إنهاء الحجز: ' . $e->getMessage());
     }
   }

@@ -247,6 +247,7 @@
                             value="{{ number_format($bookingHourPrice ?? 0, 2, '.', '') }}">
                         <input type="hidden" name="remaining" id="remaining"
                             value="{{ number_format($remaining ?? 0, 2, '.', '') }}">
+                        <input type="hidden" name="payment_type" id="payment_type" value="cash">
 
                         <button type="submit" class="btn btn-danger">إنهاء الحساب</button>
                     </form>
@@ -288,7 +289,8 @@
             }
             if (purchasesSpan) {
                 const purchases = purchasesSpan.textContent.replace(/[^\d.-]/g, '').trim();
-                document.getElementById('purchases_total').value = purchases || 0;
+                const pInput = document.getElementById('purchases_total');
+                if (pInput) pInput.value = purchases || 0;
             }
             // deposit_paid يأتي من السيرفر كقيمة افتراضية، لا حاجة لتغييره هنا
         });
