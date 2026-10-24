@@ -25,9 +25,14 @@
     </a>
 
     @if (Auth::user()->role === 'user')
-        <a href="{{ route('expense-drafts.index') }}" class="{{ Request::is('expense-drafts') ? 'active' : '' }}">
+        <a href="{{ route('expense-drafts.index') }}" class="{{ Request::is('expense-drafts*') ? 'active' : '' }}">
             <i class="fa-solid fa-coins"></i>
             <span class="label">المصروف</span>
+        </a>
+
+        <a href="{{ route('refund-requests.index') }}" class="{{ Request::is('refund-requests*') ? 'active' : '' }}">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span class="label">طلب ارتجاع</span>
         </a>
     @endif
 
@@ -35,6 +40,17 @@
         <a href="{{ route('expenses.create') }}" class="{{ Request::is('expenses/create') ? 'active' : '' }}">
             <i class="fa-solid fa-money-bill-wave"></i>
             <span class="label">المصروف</span>
+        </a>
+
+        <a href="{{ route('admin.refund-requests.index') }}" class="{{ Request::is('admin/refund-requests*') ? 'active' : '' }}" style="position:relative;">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span class="label">المرتجعات</span>
+            @php
+                $pendingRefundsCount = \App\Models\RefundRequest::where('status', 'pending')->count();
+            @endphp
+            @if($pendingRefundsCount > 0)
+                <span class="badge rounded-pill bg-danger" style="position:absolute; top:4px; right:8px; font-size:10px; padding:2px 5px;">{{ $pendingRefundsCount }}</span>
+            @endif
         </a>
 
         <a href="{{ route('admin.calendar') }}" class="{{ Request::is('admin/calendar') ? 'active' : '' }}">

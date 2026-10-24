@@ -2020,7 +2020,7 @@ data-reason="${escapeHtml(it.blacklist_reason || '')}">
 
                 async function fetchEstimate() {
                     const hallId = hallEl?.value || '';
-                    const attendees = $('#personsInput').val() || '';
+                    const attendees = $('#modal_persons').val() || $('#personsInput').val() || '1';
 
                     const durNum = FIXED_DURATION; // use fixed 60 minutes
                     const attNum = safeNumber(attendees);
@@ -2107,7 +2107,23 @@ data-reason="${escapeHtml(it.blacklist_reason || '')}">
                 // مستمع على تغيير القاعة — عند التغيير نحسب تلقائيًا
                 if (hallEl) hallEl.addEventListener('change', fetchEstimate);
 
-                // لو العدد تغيّر (من العدّاد) يجب تحديث العرض
+                // لو العدد تغيّر داخل المودال أو من العدّاد الرئيسي
+                $(document).on('click', '#modalDecreasePersons', function() {
+                    let val = parseInt($('#modal_persons').val()) || 1;
+                    if (val > 1) {
+                        val--;
+                        $('#modal_persons').val(val);
+                        $('#personsDisplayInModal').text(val);
+                        if (hallEl && hallEl.value) fetchEstimate();
+                    }
+                });
+                $(document).on('click', '#modalIncreasePersons', function() {
+                    let val = parseInt($('#modal_persons').val()) || 1;
+                    val++;
+                    $('#modal_persons').val(val);
+                    $('#personsDisplayInModal').text(val);
+                    if (hallEl && hallEl.value) fetchEstimate();
+                });
                 $(document).on('click', '#increasePersons, #decreasePersons', function() {
                     $('#modal_persons').val($('#personsInput').val());
                     $('#personsDisplayInModal').text($('#personsInput').val());
@@ -2116,10 +2132,10 @@ data-reason="${escapeHtml(it.blacklist_reason || '')}">
                 });
 
                 // قبل إرسال الفورم النهائي (startNow) نملأ القيم النهائية من الفورم الرئيسي (اسم/تليفون/عدد)
-                document.getElementById('startBookingForm').addEventListener('submit', function(e) {
+                document.getElementById('startBookingForm')?.addEventListener('submit', function(e) {
                     // تأكد من وجود بيانات العميل وإلا نمنع الإرسال
-                    const phone = $('#phone').val() || $('#modal_phone').val();
-                    const name = $('#name').val() || $('#modal_name').val();
+                    const phone = $('#modal_phone').val() || $('#phone').val();
+                    const name = $('#modal_name').val() || $('#name').val();
 
                     if (!phone || !name) {
                         e.preventDefault();
@@ -2130,7 +2146,9 @@ data-reason="${escapeHtml(it.blacklist_reason || '')}">
                     // copy values (safety)
                     $('#modal_phone').val(phone);
                     $('#modal_name').val(name);
-                    $('#modal_persons').val($('#personsInput').val());
+                    if (!$('#modal_persons').val()) {
+                        $('#modal_persons').val($('#personsInput').val() || '1');
+                    }
 
                     // تأكد أن الحقل المخفي للمدة موجود ومملوء (مدة ثابتة ساعة)
                     $('input[name="duration_minutes"]').val(FIXED_DURATION);

@@ -15,6 +15,7 @@ class ShiftAction extends Model
         'expense_amount',
         'payment_type',
         'expense_draft_id', // تأكد أنه موجود هنا
+        'refund_request_id',
         'notes',
     ];
     protected $table = 'shift_actions';
@@ -37,5 +38,9 @@ class ShiftAction extends Model
     public function expenseType()
     {
         return $this->belongsTo(ExpenseType::class, 'expense_type_id');
+    }
+    public function refundRequest()
+    {
+        return $this->belongsTo(RefundRequest::class, 'refund_request_id');
     }
 }

@@ -908,23 +908,32 @@
         const privateBtn = box.querySelector('#openPrivateBtn');
 
         privateBtn.addEventListener('click', () => {
-            modalPhone.value = client.phone || '';
-            modalName.value = client.name || '';
-            modalPersons.value = persons || '1';
-            personsDisplayEl.textContent = persons || '1';
+            const modalPhone = document.getElementById('modal_phone');
+            const modalName = document.getElementById('modal_name');
+            const modalClientId = document.getElementById('modal_client_id');
+            const modalPersons = document.getElementById('modal_persons');
+            const personsDisplayEl = document.getElementById('personsDisplayInModal');
+
+            if (modalPhone) modalPhone.value = client.phone || '';
+            if (modalName) modalName.value = client.name || '';
+            if (modalClientId) modalClientId.value = client.id || '';
+            if (modalPersons) modalPersons.value = persons || '1';
+            if (personsDisplayEl) personsDisplayEl.textContent = persons || '1';
 
             // إعادة تعيين حالة UI للمودال
-            estimateBanner.style.display = 'none';
-            ongoingWarning.style.display = 'none';
-            estimateAmount.textContent = '';
-            estimatePerHour.textContent = '';
-            estimateMessage.textContent = 'اختَر القاعة لاظهار التقدير (المدة: ساعة واحدة)';
-            startNowBtn.disabled = true;
+            if (estimateBanner) estimateBanner.style.display = 'none';
+            if (ongoingWarning) ongoingWarning.style.display = 'none';
+            if (estimateAmount) estimateAmount.textContent = '';
+            if (estimatePerHour) estimatePerHour.textContent = '';
+            if (estimateMessage) estimateMessage.textContent = 'اختَر القاعة لاظهار التقدير (المدة: ساعة واحدة)';
+            if (startNowBtn) startNowBtn.disabled = true;
 
             // فتح المودال برمجياً
             const modalEl = document.getElementById('startBookingModal');
-            const modal = new bootstrap.Modal(modalEl);
-            modal.show();
+            if (modalEl) {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
         });
 
         const personsDisplayEl = document.getElementById('personsDisplayInModal');
@@ -937,12 +946,12 @@
         const startNowBtn = document.getElementById('startNowBtn');
 
         $('#startBookingModal').on('shown.bs.modal', function() {
-            const personsDisplayEl = document.getElementById('personsDisplayInModal');
-            personsDisplayEl.textContent = persons || '1';
+            const pDisplay = document.getElementById('personsDisplayInModal');
+            if (pDisplay) pDisplay.textContent = persons || '1';
 
             // إذا كانت القاعة محددة مسبقًا
-            const hallEl = document.getElementById('hallSelect');
-            if (hallEl && hallEl.value) {
+            const hSelect = document.getElementById('hallSelect');
+            if (hSelect && hSelect.value) {
                 fetchEstimate?.();
             }
         });
@@ -953,31 +962,59 @@
         function updateModalPersons() {
             const modalPersonsEl = document.getElementById('personsDisplayInModal');
             const modalPersonsInput = document.getElementById('modal_persons');
-            modalPersonsEl.textContent = persons;
-            modalPersonsInput.value = persons;
+            if (modalPersonsEl) modalPersonsEl.textContent = persons;
+            if (modalPersonsInput) modalPersonsInput.value = persons;
+        }
+
+        async function checkOngoing(hallId) {
+            if (!hallId) return { ongoing: false };
+            try {
+                const url = "{{ route('bookings.check_ongoing') }}?hall_id=" + encodeURIComponent(hallId);
+                const resp = await fetch(url, {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin'
+                });
+                if (!resp.ok) return { error: 'خطأ في التحقق من القاعة' };
+                return await resp.json();
+            } catch (err) {
+                console.error('[checkOngoing] ', err);
+                return { error: 'خطأ في الاتصال بالخادم' };
+            }
         }
 
         async function fetchEstimate() {
-            const hallId = hallEl.value;
-            const attendees = Number(modalPersons.value || 1);
+            const hallSelectEl = document.getElementById('hallSelect');
+            const modalPersonsInput = document.getElementById('modal_persons');
+            const startBtn = document.getElementById('startNowBtn');
+            const banner = document.getElementById('estimateBanner');
+            const msg = document.getElementById('estimateMessage');
+            const amountEl = document.getElementById('estimateAmount');
+            const perHourEl = document.getElementById('estimatePerHour');
+            const warnBox = document.getElementById('ongoingWarning');
+            const warnText = document.getElementById('ongoingText');
+
+            const hallId = hallSelectEl?.value;
+            const attendees = Number(modalPersonsInput?.value || 1);
 
             if (!hallId || attendees < 1) {
-                startNowBtn.disabled = true;
-                estimateBanner.style.display = 'none';
+                if (startBtn) startBtn.disabled = true;
+                if (banner) banner.style.display = 'none';
                 return;
             }
 
             // عرض Loading
-            estimateBanner.style.display = 'block';
-            estimateMessage.textContent = 'جارِ الحساب...';
-            startNowBtn.disabled = true;
+            if (banner) banner.style.display = 'block';
+            if (msg) msg.textContent = 'جارِ الفحص والحساب...';
+            if (warnBox) warnBox.style.display = 'none';
+            if (startBtn) startBtn.disabled = true;
 
             // تحقق من الحجز الجاري
             const ongoingResp = await checkOngoing(hallId);
             if (ongoingResp && ongoingResp.ongoing) {
-                ongoingWarning.style.display = 'block';
-                ongoingText.textContent = ongoingResp.message || 'القاعة محجوزة حالياً.';
-                startNowBtn.disabled = true;
+                if (warnBox) warnBox.style.display = 'block';
+                if (warnText) warnText.textContent = ongoingResp.message || 'القاعة محجوزة حالياً.';
+                if (banner) banner.style.display = 'none';
+                if (startBtn) startBtn.disabled = true;
                 return;
             }
 
@@ -992,18 +1029,18 @@
                 const data = await resp.json();
 
                 if (data && data.success) {
-                    estimateMessage.textContent = `التقدير (المدة: ساعة واحدة)`;
-                    estimateAmount.textContent = `${data.estimated_formatted} ${data.currency || ''}`;
-                    estimatePerHour.textContent = `سعر الساعة: ${data.per_hour_formatted || ''} ${data.currency || ''}`;
-                    startNowBtn.disabled = false; // ✅ تفعيل الزر
+                    if (msg) msg.textContent = `التقدير (المدة: ساعة واحدة)`;
+                    if (amountEl) amountEl.textContent = `${data.estimated_formatted} ${data.currency || ''}`;
+                    if (perHourEl) perHourEl.textContent = `سعر الساعة: ${data.per_hour_formatted || ''} ${data.currency || ''}`;
+                    if (startBtn) startBtn.disabled = false; // ✅ تفعيل الزر
                 } else {
-                    estimateMessage.textContent = data.error || 'خطأ في الحساب';
-                    startNowBtn.disabled = true;
+                    if (msg) msg.textContent = data.error || 'خطأ في الحساب';
+                    if (startBtn) startBtn.disabled = true;
                 }
             } catch (err) {
                 console.error(err);
-                estimateMessage.textContent = 'خطأ في الاتصال';
-                startNowBtn.disabled = true;
+                if (msg) msg.textContent = 'خطأ في الاتصال';
+                if (startBtn) startBtn.disabled = true;
             }
         }
 
@@ -1023,22 +1060,24 @@
             updateModalPersons(); // 🔹 يحدث المودال مباشرة
         });
 
-
-        startBookingForm.addEventListener('submit', function(e) {
+        const startBookingForm = document.getElementById('startBookingForm');
+        startBookingForm?.addEventListener('submit', function(e) {
+            const mPhone = document.getElementById('modal_phone');
+            const mName = document.getElementById('modal_name');
             // تحقق من البيانات
-            if (!modalPhone.value || !modalName.value) {
+            if (!mPhone?.value || !mName?.value) {
                 e.preventDefault();
                 alert('مطلوب: اسم العميل ورقم الهاتف قبل بدء الجلسة.');
                 return false;
             }
 
-            // copy values
-            modalPersons.value = personsDisplayEl.textContent || '1';
-            $('input[name="duration_minutes"]').val(60); // مدة ثابتة ساعة
-
-            // الفورم سيرسل تلقائيًا إلى route bookings.start-now (POST)
+            const mPersons = document.getElementById('modal_persons');
+            if (mPersons && !mPersons.value) {
+                mPersons.value = '1';
+            }
         });
     </script>
+    @include('session.modal.start-booking')
 @yield('scripts')
 
 </body>

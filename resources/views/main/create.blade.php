@@ -33,12 +33,34 @@
                         </button>
                     </form>
                 </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <form action="{{ route('admin.refund-requests.index') }}" method="GET">
+                        <button type="submit" class="custom-card w-100 position-relative">
+                            <img src="https://img.icons8.com/ios/50/refund.png" alt="icon">
+                            <span>طلبات الارتجاع</span>
+                            @php
+                                $pendingRefunds = \App\Models\RefundRequest::where('status', 'pending')->count();
+                            @endphp
+                            @if($pendingRefunds > 0)
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2">{{ $pendingRefunds }}</span>
+                            @endif
+                        </button>
+                    </form>
+                </div>
             @else
                 <div class="col-12 col-sm-6 col-lg-4">
                     <form action="{{ route('expense-drafts.index') }}" method="GET">
                         <button type="submit" class="custom-card w-100">
                             <img src="https://img.icons8.com/ios/50/money-transfer.png" alt="icon">
                             <span>مصروفات</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <form action="{{ route('refund-requests.index') }}" method="GET">
+                        <button type="submit" class="custom-card w-100">
+                            <img src="https://img.icons8.com/ios/50/refund.png" alt="icon">
+                            <span>طلب ارتجاع</span>
                         </button>
                     </form>
                 </div>

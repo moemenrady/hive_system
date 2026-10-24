@@ -1004,17 +1004,12 @@ class BookingController extends Controller
       if (\DB::table('venue_pricing')->exists()) {
         $base = DB::table('venue_pricing')->value('base_hour_price');
       } else {
-        return redirect()
-          ->route('error.create', ['message' => "لا يوجد سعر اساسي للساعة حتى الأن"]);
+        return back()->withInput()->with('error', '⚠️ لا يوجد سعر أساسي للساعة مضبوط حتى الآن في النظام.');
       }
 
       $now = Carbon::now();
       $start = $now->copy();
       $end = $now->copy()->addMinutes((int) $data['duration_minutes']);
-
-      if ($conflicts->hasInProgressConflict($hall->id)) {
-        return back()->withInput()->with('error', 'لا يمكن بدء الحجز الآن هناك حجز جاري لهذه القاعة.');
-      }
 
       $estimated = $pricing->setBase($base)->total(
         $data['attendees'],
@@ -1052,25 +1047,20 @@ class BookingController extends Controller
               $clientId = $new->id;
             } catch (\Illuminate\Database\QueryException $qe) {
               // لو استثناء تكرار مفتاح (race condition) — جلب العميل الموجود الآن
-              // كود الخطأ MySQL for duplicate entry هو 1062؛ لكن نكتفي بالتعامل العام
               \Log::warning('Client create race condition, fetching existing by phone. Err: ' . $qe->getMessage());
               $existingAfter = Client::where('phone', $phone)->first();
               if ($existingAfter) {
                 $clientId = $existingAfter->id;
-                // ممكن نحدّث الاسم لو أُعطي وتم تغيّره
                 if ($name && $existingAfter->name !== $name) {
                   $existingAfter->name = $name;
                   $existingAfter->save();
                 }
               } else {
-                // لم نتمكن من إنشاء العميل أو إيجاده — رمي الاستثناء الأصلي
                 throw $qe;
               }
             }
           }
         } else {
-          // لا هاتف معطى — نحتاج إنشاء عميل بدون هاتف (إذا السيرفر يسمح)
-          // هنا نفترض أن phone يمكن أن يكون nullable في DB؛ إذا لا، فالتحقق validation يمنع هذا
           $new = Client::create([
             'name' => $name ?? 'عميل',
             'phone' => null,
@@ -1083,7 +1073,6 @@ class BookingController extends Controller
       if (empty($clientId)) {
         throw new \Exception('حدث خطأ في الحصول على معرف العميل.');
       }
-
 
       // ✅ 1) تحقق من وجود حجز جاري فعلاً (نمنع)
       if ($conflicts->hasInProgressConflict($hall->id)) {
@@ -1147,9 +1136,10 @@ class BookingController extends Controller
         ]);
 
         $shiftService->logAction(
-          'start_booking',
+          'add_booking',
           $invoice->id,
           $invoice->total ?? $depositAmount,
+          null,
           null,
           "بدء حجز فوري وربط مقدم"
         );
@@ -1169,12 +1159,11 @@ class BookingController extends Controller
 
       return redirect()
         ->route('bookings.index-manager')
-        ->with('success', "تم بدء الجلسة الآن (حجز #{$booking->id}) بنجاح.");
+        ->with('success', "تم بدء الجلسة الخاصة الآن (حجز #{$booking->id}) بنجاح.");
     } catch (\Throwable $e) {
       DB::rollBack();
       \Log::error('Error starting booking now: ' . $e->getMessage());
-      return redirect()
-        ->route('error.create', ['message' => $e->getMessage()]);
+      return back()->withInput()->with('error', 'حدث خطأ أثناء بدء الجلسة الخاصة: ' . $e->getMessage());
     }
   }
 

@@ -8,8 +8,11 @@
                 الرئيسية
             </a>
             @if (Auth::user()->role === 'admin')
-                <a href="{{ route('expenses.index') }}" class={{ Request::is('bookings') ? 'active' : '' }}>
+                <a href="{{ route('expenses.index') }}" class={{ Request::is('expenses*') ? 'active' : '' }}>
                     المصروفات
+                </a>
+                <a href="{{ route('admin.refund-requests.index') }}" class={{ Request::is('admin/refund-requests*') ? 'active' : '' }}>
+                    المرتجعات
                 </a>
             @endif
 

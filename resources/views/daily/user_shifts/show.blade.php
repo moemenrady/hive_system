@@ -37,6 +37,8 @@
                 <option value="renew_subscription">تجديد</option>
                 <option value="end_session">إنهاء جلسة</option>
                 <option value="expense_note">مذكرة مصروف</option>
+                <option value="refund_request">طلب ارتجاع</option>
+                <option value="refund_rejected">ارتجاع مرفوض</option>
                 <option value="separate_sale">بيع منفصل</option>
                 <option value="add_booking">إضافة حجز</option>
                 <option value="end_booking">إنهاء حجز</option>
@@ -89,6 +91,14 @@
                                 </p>
                             @endif
 
+                            @if (in_array($action->action_type, ['refund_request', 'refund_rejected']) && $action->refundRequest)
+                                <p>
+                                    <strong>حالة الارتجاع:</strong>
+                                    <span class="badge {{ $action->refundRequest->isApproved() ? 'bg-success' : ($action->refundRequest->isRejected() ? 'bg-danger' : 'bg-warning text-dark') }}">
+                                        {{ $action->refundRequest->status_label }}
+                                    </span>
+                                </p>
+                            @endif
 
                             <p><strong>ملاحظات:</strong> {!! $action->notes ? nl2br(e($action->notes)) : '—' !!}</p>
                         </div>
@@ -275,6 +285,8 @@
                 'renew_subscription' => 'تجديد اشتراك',
                 'end_session' => 'إنهاء جلسة',
                 'expense_note' => 'مذكرة مصروف',
+                'refund_request' => 'طلب ارتجاع',
+                'refund_rejected' => 'إلغاء خصم ارتجاع (مرفوض)',
                 'add_booking' => 'إضافة حجز',
                 'end_booking' => 'إنهاء حجز',
                 'separate_sale' => 'بيع منفصل',
@@ -292,6 +304,8 @@
                     => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 17l5-5-5-5"></path></svg>',
                 'expense_note'
                     => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 10v6a2 2 0 0 1-2 2H5"></path></svg>',
+                'refund_request', 'refund_rejected'
+                    => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10h10a5 5 0 0 1 5 5v2"></path><polyline points="7 6 3 10 7 14"></polyline></svg>',
                 'add_booking'
                     => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"></rect></svg>',
                 default

@@ -27,7 +27,8 @@ class ShiftController extends Controller
       'actions.invoice',
       'actions.expenseDraft',
       'actions.expenseDraft.expenseType',
-      'actions.expenseType'
+      'actions.expenseType',
+      'actions.refundRequest'
     ]);
 
     // إجمالي الإيراد والمصروف
@@ -45,7 +46,7 @@ class ShiftController extends Controller
       ->sum('amount');
 
     $actions = $shift->actions()
-      ->with(['invoice', 'expenseDraft.expenseType', 'expenseType'])
+      ->with(['invoice', 'expenseDraft.expenseType', 'expenseType', 'refundRequest'])
       ->orderBy('created_at', 'asc')
       ->get();
 
