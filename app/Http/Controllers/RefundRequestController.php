@@ -29,6 +29,27 @@ class RefundRequestController extends Controller
             ->whereNull('end_time')
             ->first();
 
+        // جلب الفواتير الصادرة حصراً في هذا الشيفت المفتوح للموظف
+        $shiftInvoices = collect();
+        if ($openShift) {
+            $shiftActionInvoices = ShiftAction::where('shift_id', $openShift->id)
+                ->whereNotNull('invoice_id')
+                ->pluck('payment_type', 'invoice_id');
+
+            $shiftInvoices = Invoice::with(['client', 'items'])
+                ->whereIn('id', $shiftActionInvoices->keys())
+                ->latest()
+                ->get()
+                ->map(function ($inv) use ($shiftActionInvoices) {
+                    $inv->shift_payment_type = $shiftActionInvoices[$inv->id] ?? 'cash';
+                    $itemsSummary = $inv->items->map(function ($item) {
+                        return $item->name . ($item->qty > 1 ? " × {$item->qty}" : "");
+                    })->implode('، ');
+                    $inv->items_summary = $itemsSummary ?: 'فاتورة عامة';
+                    return $inv;
+                });
+        }
+
         $stats = [
             'pending' => RefundRequest::where('created_by', $user->id)->where('status', 'pending')->count(),
             'approved' => RefundRequest::where('created_by', $user->id)->where('status', 'approved')->count(),
@@ -36,7 +57,7 @@ class RefundRequestController extends Controller
             'total_amount' => RefundRequest::where('created_by', $user->id)->where('status', 'approved')->sum('amount'),
         ];
 
-        return view('refunds.user.index', compact('refundRequests', 'openShift', 'stats'));
+        return view('refunds.user.index', compact('refundRequests', 'openShift', 'shiftInvoices', 'stats'));
     }
 
     /**
@@ -48,6 +69,7 @@ class RefundRequestController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'notes' => 'required|string|min:3|max:500',
             'payment_type' => 'nullable|in:cash,digital',
+            'invoice_id' => 'nullable|integer',
             'invoice_number' => 'nullable|string|max:100',
         ], [
             'amount.required' => 'يرجى إدخال مبلغ الارتجاع',
@@ -67,9 +89,23 @@ class RefundRequestController extends Controller
                 ->with('error', '⚠️ لا يوجد شيفت مفتوح. يجب فتح شيفت أولاً لتسجيل طلب الارتجاع وخصمه منه.');
         }
 
-        // محاولة ربط الفاتورة إن أُدخل رقمها
+        // محاولة ربط الفاتورة إن اختار من الشيفت أو أدخل رقمها يدوياً
         $invoice = null;
-        if ($request->filled('invoice_number')) {
+        if ($request->filled('invoice_id')) {
+            $invId = (int) $request->invoice_id;
+            if ($openShift) {
+                // التأكد من أن الفاتورة تابعة للشيفت المفتوح حصراً
+                $isShiftInvoice = ShiftAction::where('shift_id', $openShift->id)
+                    ->where('invoice_id', $invId)
+                    ->exists();
+
+                if ($isShiftInvoice) {
+                    $invoice = Invoice::find($invId);
+                }
+            } else {
+                $invoice = Invoice::find($invId);
+            }
+        } elseif ($request->filled('invoice_number')) {
             $invNum = trim($request->invoice_number);
             $invoice = Invoice::where('invoice_number', $invNum)
                 ->orWhere('id', $invNum)

@@ -328,4 +328,67 @@ class RefundRequestSystemTest extends TestCase
         $response->assertSee('استرجاع مشروب بارد');
         $response->assertSee('معلق');
     }
+
+    public function test_employee_can_select_and_refund_invoice_from_current_shift(): void
+    {
+        $shift = Shift::create([
+            'user_id' => $this->staff->id,
+            'start_time' => now(),
+            'total_amount' => 150,
+            'total_expense' => 0,
+        ]);
+
+        $client = \App\Models\Client::create(['name' => 'سامح فؤاد', 'phone' => '01011223344']);
+        $invoice = \App\Models\Invoice::create([
+            'invoice_number' => 'INV-9999',
+            'client_id' => $client->id,
+            'type' => 'product',
+            'total' => 150.00,
+            'profit' => 50.00,
+        ]);
+
+        ShiftAction::create([
+            'shift_id' => $shift->id,
+            'invoice_id' => $invoice->id,
+            'action_type' => 'separate_sale',
+            'amount' => 150.00,
+            'payment_type' => 'cash',
+            'notes' => 'بيع منتجات',
+        ]);
+
+        // صفحة الموظف يجب أن تعرض الفاتورة ضمن فواتير الشيفت المفتوح
+        $pageResponse = $this->actingAs($this->staff)->get(route('refund-requests.index'));
+        $pageResponse->assertStatus(200);
+        $pageResponse->assertSee('INV-9999');
+        $pageResponse->assertSee('سامح فؤاد');
+
+        // إرسال طلب الارتجاع باختيار الفاتورة
+        $response = $this->actingAs($this->staff)->post(route('refund-requests.store'), [
+            'invoice_id' => $invoice->id,
+            'amount' => 150.00,
+            'payment_type' => 'cash',
+            'notes' => 'ارتجاع فاتورة #INV-9999 للعميل سامح فؤاد — سبب الارتجاع: إلغاء الأوردر',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // التأكد من ربط الفاتورة والعميل والشيفت بالطلب
+        $this->assertDatabaseHas('refund_requests', [
+            'created_by' => $this->staff->id,
+            'shift_id' => $shift->id,
+            'invoice_id' => $invoice->id,
+            'client_id' => $client->id,
+            'amount' => 150.00,
+            'status' => 'pending',
+        ]);
+
+        // تم تسجيل الحركة في الشيفت
+        $this->assertDatabaseHas('shift_actions', [
+            'shift_id' => $shift->id,
+            'invoice_id' => $invoice->id,
+            'action_type' => 'refund_request',
+            'expense_amount' => 150.00,
+        ]);
+    }
 }
